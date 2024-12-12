@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # hedieaty_application
 
 A new Flutter project.
@@ -27,3 +28,6 @@ the `lib/src/localization` directory.
 
 To support additional languages, please visit the tutorial on
 [Internationalizing Flutter apps](https://flutter.dev/to/internationalization).
+=======
+# HedieatyApp
+>>>>>>> 9320cb658dfcf7cb1b279ff47dd3838b25d8ea0b
