@@ -1,5 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../viewmodels/auth_viewmodel.dart';
+import 'firestore_test_view.dart';
 
 class AuthView extends StatefulWidget {
   const AuthView({Key? key}) : super(key: key);
@@ -9,9 +10,40 @@ class AuthView extends StatefulWidget {
 }
 
 class _AuthViewState extends State<AuthView> {
-  final _authViewModel = AuthViewModel();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _signIn() async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      // Navigate to FirestoreTestView after successful sign-in
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const FirestoreTestView()),
+      );
+    } catch (e) {
+      print("Error signing in: $e");
+    }
+  }
+
+  Future<void> _signUp() async {
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      // Navigate to FirestoreTestView after successful sign-up
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const FirestoreTestView()),
+      );
+    } catch (e) {
+      print("Error signing up: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,20 +66,12 @@ class _AuthViewState extends State<AuthView> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                final email = _emailController.text;
-                final password = _passwordController.text;
-                await _authViewModel.signIn(email, password);
-              },
+              onPressed: _signIn,
               child: const Text('Sign In'),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () async {
-                final email = _emailController.text;
-                final password = _passwordController.text;
-                await _authViewModel.register(email, password);
-              },
+              onPressed: _signUp,
               child: const Text('Sign Up'),
             ),
           ],

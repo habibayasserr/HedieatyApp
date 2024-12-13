@@ -17,12 +17,15 @@ class FirestoreService {
     }
   }
 
-  // Get all events for a user
   Future<List<Map<String, dynamic>>> getUserEvents(String userId) async {
     try {
       final querySnapshot =
           await _db.collection('users').doc(userId).collection('events').get();
-      return querySnapshot.docs.map((doc) => doc.data()).toList();
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id; // Include the document ID
+        return data;
+      }).toList();
     } catch (e) {
       print("Error getting user events: $e");
       return [];

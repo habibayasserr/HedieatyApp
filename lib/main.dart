@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'views/auth_view.dart';
 import 'views/firestore_test_view.dart';
 
 void main() async {
@@ -18,7 +20,24 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: FirestoreTestView(), // Switch to FirestoreTestView
+      home: const AuthWrapper(), // This decides the initial screen
     );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Check if a user is currently signed in
+    final user = FirebaseAuth.instance.currentUser;
+
+    // If the user is authenticated, show FirestoreTestView, else show AuthView
+    if (user == null) {
+      return const AuthView();
+    } else {
+      return const FirestoreTestView();
+    }
   }
 }
