@@ -20,7 +20,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const AuthWrapper(), // This decides the initial screen
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AuthWrapper(),
+        '/auth': (context) => const AuthView(),
+        '/firestore': (context) => const FirestoreTestView(),
+      },
     );
   }
 }
@@ -30,14 +35,11 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if a user is currently signed in
     final user = FirebaseAuth.instance.currentUser;
-
-    // If the user is authenticated, show FirestoreTestView, else show AuthView
     if (user == null) {
-      return const AuthView();
+      return const AuthView(); // Navigate to authentication if not logged in
     } else {
-      return const FirestoreTestView();
+      return const FirestoreTestView(); // Navigate to FirestoreTestView if logged in
     }
   }
 }
