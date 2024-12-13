@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'views/auth_view.dart'; // Make sure this path is correct!
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +17,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const AuthView(),
+      home: Scaffold(
+        appBar: AppBar(title: const Text('Firestore Test')),
+        body: const Center(child: Text('Firestore Initialized')),
+      ),
     );
   }
 }
