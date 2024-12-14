@@ -191,9 +191,16 @@ class _HomeViewState extends State<HomeView> {
         child: const Icon(Icons.person_add),
       ),
       bottomNavigationBar: CustomFooter(
-        currentIndex: 0,
+        currentIndex: 1, // Home tab is active
         onTap: (index) {
-          // Handle Footer Navigation
+          // Handle navigation dynamically
+          if (index == 0) {
+            Navigator.pushNamed(context, '/events'); // Navigate to Events
+          } else if (index == 1) {
+            // Current tab (Home) - Do nothing
+          } else if (index == 2) {
+            //Navigator.pushNamed(context, '/profile'); // Navigate to Profile
+          }
         },
       ),
     );

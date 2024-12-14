@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CustomFooter extends StatelessWidget {
-  final int currentIndex; // The current active tab index
-  // Optional callbacks for navigation (commented for static implementation)
-  final Function(int)? onTap;
+  final int currentIndex; // The active tab index
+  final Function(int)? onTap; // Optional callback for navigation
 
   const CustomFooter({
     Key? key,
@@ -14,25 +13,26 @@ class CustomFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: currentIndex,
+      currentIndex: currentIndex, // Highlight the active tab
       onTap: (index) {
-        // Uncomment to enable navigation logic
-        // if (onTap != null) onTap!(index);
+        // Static implementation: Uncomment when navigation logic is ready
+        if (onTap != null) onTap!(index);
       },
       backgroundColor: Colors.white,
-      selectedItemColor: Colors.orange, // Highlight the active tab
+      selectedItemColor: Colors.orange, // Highlight active tab
       unselectedItemColor: Colors.grey,
+      elevation: 8,
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today), // Events Icon (left)
+          icon: Icon(Icons.calendar_today), // Events Tab
           label: 'Events',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.home), // Home Icon (center)
+          icon: Icon(Icons.home), // Home Tab
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.person), // Profile Icon (right)
+          icon: Icon(Icons.person), // Profile Tab
           label: 'Profile',
         ),
       ],
