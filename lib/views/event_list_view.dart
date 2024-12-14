@@ -335,9 +335,8 @@ class _EventListViewState extends State<EventListView> {
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: CustomFooter(
-        currentIndex: 1, // Highlight the active tab
         onTap: (index) {
-          // Handle navigation
+          // Navigation logic is handled in CustomFooter
         },
       ),
     );
