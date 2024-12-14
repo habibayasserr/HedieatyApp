@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomHeader extends StatelessWidget {
+class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback onProfileTap;
   final VoidCallback onNotificationTap;
@@ -37,4 +37,8 @@ class CustomHeader extends StatelessWidget {
       ],
     );
   }
+
+  // Add this property to implement PreferredSizeWidget
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
