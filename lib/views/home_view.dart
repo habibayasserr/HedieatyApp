@@ -126,8 +126,7 @@ class _HomeViewState extends State<HomeView> {
             child: ElevatedButton.icon(
               onPressed: () {
                 // Navigate to the Create Event/List page
-                //Navigator.pushNamed(
-                //context, '/create-event'); // Placeholder route
+                Navigator.pushNamed(context, '/events'); // Placeholder route
               },
               icon: const Icon(Icons.add, color: Colors.white),
               label: const Text(

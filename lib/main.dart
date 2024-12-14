@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'views/home_view.dart'; // Ensure the path matches your project structure
+import 'routes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,12 +11,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Hides the debug banner
+      debugShowCheckedModeBanner: false,
       title: 'Hedieaty',
       theme: ThemeData(
-        primarySwatch: Colors.orange, // Sets a primary theme color
+        primarySwatch: Colors.orange,
       ),
-      home: const HomeView(), // Sets HomeView as the initial page
+      initialRoute: '/home', // Starting page
+      routes: AppRoutes.getRoutes(), // Add routes here
     );
   }
 }
