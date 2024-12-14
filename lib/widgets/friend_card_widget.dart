@@ -22,7 +22,8 @@ class FriendCardWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundImage: AssetImage(profileImage),
+          backgroundImage:
+              AssetImage(profileImage), // Use AssetImage for local assets
           radius: 24,
         ),
         title: Text(
