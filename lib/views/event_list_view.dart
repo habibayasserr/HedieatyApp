@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/event_model.dart';
+import '../widgets/custom_header.dart';
+import '../widgets/custom_footer.dart';
 
 class EventListView extends StatefulWidget {
   const EventListView({Key? key}) : super(key: key);
@@ -10,25 +12,79 @@ class EventListView extends StatefulWidget {
 }
 
 class _EventListViewState extends State<EventListView> {
-  // List of events
   final List<Event> events = [
     Event(
       name: 'Alice\'s Birthday',
+      category: 'Birthday',
       date: DateTime.now().add(const Duration(days: 10)),
       location: 'Alice\'s House',
       description: 'A fun birthday party with friends and family.',
     ),
     Event(
       name: 'Bob\'s Wedding',
+      category: 'Wedding',
       date: DateTime.now().add(const Duration(days: 20)),
       location: 'Central Park',
       description: 'A beautiful outdoor wedding.',
     ),
+    Event(
+      name: 'Graduation Party',
+      category: 'Graduation',
+      date: DateTime.now().subtract(const Duration(days: 5)),
+      location: 'University Hall',
+      description: 'Celebrating academic achievements.',
+    ),
   ];
 
-  // Sorting criteria
-  String selectedSortOption = 'Name (Ascending)';
+  String selectedSortOption = 'Sort by Name (Ascending)';
 
+  // Calculate event status dynamically
+  String _calculateStatus(DateTime eventDate) {
+    final today = DateTime.now();
+    if (eventDate.isAfter(today)) {
+      return 'Upcoming';
+    } else if (eventDate.difference(today).inDays.abs() == 0) {
+      return 'Current';
+    } else {
+      return 'Past';
+    }
+  }
+
+  // Sort events based on the selected criteria
+  void _sortEvents() {
+    switch (selectedSortOption) {
+      case 'Sort by Name (Ascending)':
+        events.sort((a, b) => a.name.compareTo(b.name));
+        break;
+
+      case 'Sort by Name (Descending)':
+        events.sort((a, b) => b.name.compareTo(a.name));
+        break;
+
+      case 'Sort by Upcoming Events':
+        events.sort((a, b) => b.date.compareTo(a.date));
+        break;
+
+      case 'Sort by Current Events':
+        events.sort((a, b) {
+          final statusA = _calculateStatus(a.date);
+          final statusB = _calculateStatus(b.date);
+          return (statusA == 'Current' ? 0 : 1) -
+              (statusB == 'Current' ? 0 : 1);
+        });
+        break;
+
+      case 'Sort by Past Events':
+        events.sort((a, b) => a.date.compareTo(b.date));
+        break;
+
+      case 'Sort by Category':
+        events.sort((a, b) => a.category.compareTo(b.category));
+        break;
+    }
+  }
+
+  // Dialog for adding or editing events
   void _showEventDialog({Event? event, int? index}) {
     final TextEditingController nameController =
         TextEditingController(text: event?.name);
@@ -37,6 +93,7 @@ class _EventListViewState extends State<EventListView> {
     final TextEditingController descriptionController =
         TextEditingController(text: event?.description);
     DateTime? selectedDate = event?.date;
+    String selectedCategory = event?.category ?? 'Birthday';
 
     showDialog(
       context: context,
@@ -51,6 +108,32 @@ class _EventListViewState extends State<EventListView> {
                   decoration: const InputDecoration(
                     labelText: 'Event Name',
                     hintText: 'Enter event name',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  items: [
+                    'Birthday',
+                    'Wedding',
+                    'Graduation',
+                    'Holiday',
+                    'Engagement'
+                  ].map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedCategory = value;
+                      });
+                    }
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -76,8 +159,7 @@ class _EventListViewState extends State<EventListView> {
                     const Text('Date: '),
                     Text(
                       selectedDate != null
-                          ? DateFormat('dd-MM-yyyy')
-                              .format(selectedDate!) // Format Date
+                          ? DateFormat('dd-MM-yyyy').format(selectedDate!)
                           : 'Select Date',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
@@ -107,7 +189,7 @@ class _EventListViewState extends State<EventListView> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context), // Close dialog
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
@@ -130,6 +212,7 @@ class _EventListViewState extends State<EventListView> {
                   setState(() {
                     events.add(Event(
                       name: name,
+                      category: selectedCategory,
                       date: selectedDate ?? DateTime.now(),
                       location: location,
                       description: description,
@@ -140,12 +223,14 @@ class _EventListViewState extends State<EventListView> {
                   setState(() {
                     events[index!] = Event(
                       name: name,
-                      date: selectedDate ?? DateTime.now(),
+                      category: selectedCategory,
+                      date: selectedDate ?? event.date,
                       location: location,
                       description: description,
                     );
                   });
                 }
+
                 Navigator.pop(context); // Close dialog
               },
               child: Text(event == null ? 'Add' : 'Save'),
@@ -156,30 +241,17 @@ class _EventListViewState extends State<EventListView> {
     );
   }
 
-  void _sortEvents() {
-    switch (selectedSortOption) {
-      case 'Name (Ascending)':
-        events.sort((a, b) => a.name.compareTo(b.name));
-        break;
-      case 'Name (Descending)':
-        events.sort((a, b) => b.name.compareTo(a.name));
-        break;
-      case 'Date (Upcoming First)':
-        events.sort((a, b) => a.date.compareTo(b.date));
-        break;
-      case 'Date (Past First)':
-        events.sort((a, b) => b.date.compareTo(a.date));
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Events'),
-        centerTitle: true,
-        backgroundColor: Colors.orange,
+      appBar: CustomHeader(
+        title: 'Events',
+        onProfileTap: () {
+          // Navigate to profile
+        },
+        onNotificationTap: () {
+          // Navigate to notifications
+        },
       ),
       body: Column(
         children: [
@@ -189,10 +261,12 @@ class _EventListViewState extends State<EventListView> {
             child: DropdownButton<String>(
               value: selectedSortOption,
               items: [
-                'Name (Ascending)',
-                'Name (Descending)',
-                'Date (Upcoming First)',
-                'Date (Past First)',
+                'Sort by Name (Ascending)',
+                'Sort by Name (Descending)',
+                'Sort by Upcoming Events',
+                'Sort by Current Events',
+                'Sort by Past Events',
+                'Sort by Category',
               ].map((sortOption) {
                 return DropdownMenuItem(
                   value: sortOption,
@@ -203,7 +277,7 @@ class _EventListViewState extends State<EventListView> {
                 if (value != null) {
                   setState(() {
                     selectedSortOption = value;
-                    _sortEvents(); // Apply sorting
+                    _sortEvents();
                   });
                 }
               },
@@ -227,7 +301,7 @@ class _EventListViewState extends State<EventListView> {
                         Text(
                             'Date: ${DateFormat('yyyy-MM-dd').format(event.date)}'),
                         Text('Location: ${event.location}'),
-                        Text('Description: ${event.description}'),
+                        Text('Category: ${event.category}'),
                       ],
                     ),
                     trailing: Row(
@@ -259,6 +333,12 @@ class _EventListViewState extends State<EventListView> {
         onPressed: () => _showEventDialog(),
         backgroundColor: Colors.orange,
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: CustomFooter(
+        currentIndex: 1, // Highlight the active tab
+        onTap: (index) {
+          // Handle navigation
+        },
       ),
     );
   }
