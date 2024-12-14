@@ -32,8 +32,8 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 Image.asset(
                   'assets/images/app_logo.jpg', // Path to your app logo
-                  height: 52, // Adjust the logo size
-                  width: 52,
+                  height: 92, // Adjust the logo size
+                  width: 92,
                 ),
                 const SizedBox(width: 8), // Space between logo and title
                 Text(

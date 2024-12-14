@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
 
 class CustomFooter extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onTap;
+  final int currentIndex; // The current active tab index
+  // Optional callbacks for navigation (commented for static implementation)
+  final Function(int)? onTap;
 
   const CustomFooter({
     Key? key,
     required this.currentIndex,
-    required this.onTap,
+    this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
-      onTap: onTap,
+      onTap: (index) {
+        // Uncomment to enable navigation logic
+        // if (onTap != null) onTap!(index);
+      },
       backgroundColor: Colors.white,
-      selectedItemColor: const Color(0xFFf7418c),
+      selectedItemColor: Colors.orange, // Highlight the active tab
       unselectedItemColor: Colors.grey,
-      elevation: 10,
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.list),
+          icon: Icon(Icons.calendar_today), // Events Icon (left)
           label: 'Events',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.person),
+          icon: Icon(Icons.home), // Home Icon (center)
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person), // Profile Icon (right)
           label: 'Profile',
         ),
       ],
