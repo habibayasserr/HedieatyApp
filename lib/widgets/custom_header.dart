@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-  final VoidCallback onProfileTap;
-  final VoidCallback onNotificationTap;
+  final String title; // Title for the header
+  // Actions for navigation (commented for static implementation)
+  final VoidCallback? onLogoTap;
+  final VoidCallback? onNotificationTap;
+  final VoidCallback? onProfileTap;
 
   const CustomHeader({
     Key? key,
     required this.title,
-    required this.onProfileTap,
-    required this.onNotificationTap,
+    this.onLogoTap,
+    this.onNotificationTap,
+    this.onProfileTap,
   }) : super(key: key);
 
   @override
@@ -17,28 +20,54 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.person, color: Colors.black),
-        onPressed: onProfileTap,
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
-        ),
+      titleSpacing: 0, // Align the logo and title to the left
+      title: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              // Uncomment when Home Screen navigation is implemented
+              // if (onLogoTap != null) onLogoTap!();
+            },
+            child: Row(
+              children: [
+                Image.asset(
+                  'assets/images/app_logo.jpg', // Path to your app logo
+                  height: 52, // Adjust the logo size
+                  width: 52,
+                ),
+                const SizedBox(width: 8), // Space between logo and title
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       actions: [
         IconButton(
           icon: const Icon(Icons.notifications, color: Colors.black),
-          onPressed: onNotificationTap,
+          onPressed: () {
+            // Uncomment when Notifications Screen is implemented
+            // if (onNotificationTap != null) onNotificationTap!();
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.person, color: Colors.black),
+          onPressed: () {
+            // Uncomment when Profile Screen is implemented
+            // if (onProfileTap != null) onProfileTap!();
+          },
         ),
       ],
     );
   }
 
-  // Add this property to implement PreferredSizeWidget
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
