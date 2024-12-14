@@ -26,7 +26,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
           GestureDetector(
             onTap: () {
               // Uncomment when Home Screen navigation is implemented
-              // if (onLogoTap != null) onLogoTap!();
+              Navigator.pushNamed(context, '/home');
             },
             child: Row(
               children: [
@@ -54,14 +54,14 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.notifications, color: Colors.black),
           onPressed: () {
             // Uncomment when Notifications Screen is implemented
-            // if (onNotificationTap != null) onNotificationTap!();
+            // Navigator.pushNamed(context, '/home')
           },
         ),
         IconButton(
           icon: const Icon(Icons.person, color: Colors.black),
           onPressed: () {
             // Uncomment when Profile Screen is implemented
-            // if (onProfileTap != null) onProfileTap!();
+            // Navigator.pushNamed(context, '/home')
           },
         ),
       ],
