@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/gift_model.dart';
+import '../models/event_model.dart';
 import '../widgets/custom_header.dart';
 import 'gift_details_view.dart';
-import '../models/event_model.dart';
 
 class GiftListView extends StatefulWidget {
-  final Event event; // Pass the associated event
+  final Event event;
 
   const GiftListView({Key? key, required this.event}) : super(key: key);
 
@@ -38,18 +38,24 @@ class _GiftListViewState extends State<GiftListView> {
     ),
   ];
 
-  String selectedSortOption = 'Sort by Name';
+  String selectedSortOption = 'Sort by Name (Ascending)';
 
   void _sortGifts() {
     switch (selectedSortOption) {
-      case 'Sort by Name':
+      case 'Sort by Name (Ascending)':
         gifts.sort((a, b) => a.name.compareTo(b.name));
+        break;
+      case 'Sort by Name (Descending)':
+        gifts.sort((a, b) => b.name.compareTo(a.name));
+        break;
+      case 'Sort by Price (Low to High)':
+        gifts.sort((a, b) => a.price.compareTo(b.price));
+        break;
+      case 'Sort by Price (High to Low)':
+        gifts.sort((a, b) => b.price.compareTo(a.price));
         break;
       case 'Sort by Category':
         gifts.sort((a, b) => a.category.compareTo(b.category));
-        break;
-      case 'Sort by Price':
-        gifts.sort((a, b) => a.price.compareTo(b.price));
         break;
     }
   }
@@ -74,9 +80,11 @@ class _GiftListViewState extends State<GiftListView> {
             child: DropdownButton<String>(
               value: selectedSortOption,
               items: [
-                'Sort by Name',
+                'Sort by Name (Ascending)',
+                'Sort by Name (Descending)',
+                'Sort by Price (Low to High)',
+                'Sort by Price (High to Low)',
                 'Sort by Category',
-                'Sort by Price',
               ].map((sortOption) {
                 return DropdownMenuItem(
                   value: sortOption,
@@ -100,7 +108,6 @@ class _GiftListViewState extends State<GiftListView> {
               itemCount: gifts.length,
               itemBuilder: (context, index) {
                 final gift = gifts[index];
-                // Change card color based on gift status
                 final Color cardColor = gift.status == 'Purchased'
                     ? Colors.red[100]!
                     : gift.status == 'Pledged'
@@ -115,7 +122,6 @@ class _GiftListViewState extends State<GiftListView> {
                     title: Text(gift.name),
                     subtitle: Text('Category: ${gift.category}'),
                     onTap: () {
-                      // Navigate to Gift Details
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -123,34 +129,6 @@ class _GiftListViewState extends State<GiftListView> {
                         ),
                       );
                     },
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (gift.status == 'Available')
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () {
-                              // Navigate to Gift Details for Editing
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      GiftDetailsView(gift: gift),
-                                ),
-                              );
-                            },
-                          ),
-                        if (gift.status == 'Available')
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              setState(() {
-                                gifts.removeAt(index);
-                              });
-                            },
-                          ),
-                      ],
-                    ),
                   ),
                 );
               },
