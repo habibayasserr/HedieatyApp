@@ -1,9 +1,9 @@
 class Gift {
-  final String name;
-  final String category;
-  final String status; // "Available" or "Pledged"
-  final double price;
-  final String description;
+  String name;
+  String category;
+  String status; // "Available" or "Pledged"
+  double price;
+  String description;
 
   Gift({
     required this.name,

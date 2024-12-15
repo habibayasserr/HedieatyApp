@@ -2,144 +2,118 @@ import 'package:flutter/material.dart';
 import '../models/gift_model.dart';
 
 class GiftDetailsView extends StatefulWidget {
-  final Gift? gift;
+  final Gift gift;
 
-  const GiftDetailsView({Key? key, this.gift}) : super(key: key);
+  const GiftDetailsView({Key? key, required this.gift}) : super(key: key);
 
   @override
   _GiftDetailsViewState createState() => _GiftDetailsViewState();
 }
 
 class _GiftDetailsViewState extends State<GiftDetailsView> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  String selectedCategory = 'Electronics'; // Default category
-  bool isAvailable = true; // Default status
+  bool isEditing = false; // Control editing state
+
+  late TextEditingController nameController;
+  late TextEditingController categoryController;
+  late TextEditingController priceController;
+  late TextEditingController descriptionController;
 
   @override
   void initState() {
     super.initState();
-    if (widget.gift != null) {
-      nameController.text = widget.gift!.name;
-      priceController.text = widget.gift!.price.toString();
-      descriptionController.text = widget.gift!.description;
-      selectedCategory = widget.gift!.category;
-      isAvailable = widget.gift!.status == 'Available';
-    }
+    // Initialize controllers with gift details
+    nameController = TextEditingController(text: widget.gift.name);
+    categoryController = TextEditingController(text: widget.gift.category);
+    priceController = TextEditingController(text: widget.gift.price.toString());
+    descriptionController =
+        TextEditingController(text: widget.gift.description);
   }
 
-  void _saveGift() {
-    final name = nameController.text.trim();
-    final price = double.tryParse(priceController.text.trim());
-    final description = descriptionController.text.trim();
-
-    if (name.isEmpty || price == null || description.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all fields correctly'),
-        ),
-      );
-      return;
-    }
-
-    // Return the new/updated gift data
-    Navigator.pop(
-      context,
-      Gift(
-        name: name,
-        category: selectedCategory,
-        status: isAvailable ? 'Available' : 'Pledged',
-        price: price,
-        description: description,
-      ),
-    );
+  @override
+  void dispose() {
+    // Dispose controllers when the widget is removed
+    nameController.dispose();
+    categoryController.dispose();
+    priceController.dispose();
+    descriptionController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.gift == null ? 'Add Gift' : 'Edit Gift'),
+        title: const Text('Gift Details'),
         backgroundColor: Colors.orange,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _saveGift,
-          ),
+          if (widget.gift.status ==
+              'Available') // Show edit button if applicable
+            IconButton(
+              icon: Icon(isEditing ? Icons.check : Icons.edit),
+              onPressed: () {
+                if (isEditing) {
+                  // Save changes when editing is done
+                  setState(() {
+                    widget.gift.name = nameController.text;
+                    widget.gift.category = categoryController.text;
+                    widget.gift.price = double.tryParse(priceController.text) ??
+                        widget.gift.price;
+                    widget.gift.description = descriptionController.text;
+                  });
+                }
+                setState(() {
+                  isEditing = !isEditing; // Toggle editing state
+                });
+              },
+            ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Gift Name',
-              ),
+              decoration: const InputDecoration(labelText: 'Gift Name'),
+              enabled: isEditing, // Editable only in editing mode
             ),
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: selectedCategory,
-              items: [
-                'Electronics',
-                'Books',
-                'Toys',
-                'Clothing',
-                'Other',
-              ].map((category) {
-                return DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedCategory = value;
-                  });
-                }
-              },
-              decoration: const InputDecoration(
-                labelText: 'Category',
-              ),
+            TextField(
+              controller: categoryController,
+              decoration: const InputDecoration(labelText: 'Category'),
+              enabled: isEditing, // Editable only in editing mode
             ),
             const SizedBox(height: 10),
             TextField(
               controller: priceController,
+              decoration: const InputDecoration(labelText: 'Price (EGP)'),
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Price',
-              ),
+              enabled: isEditing, // Editable only in editing mode
             ),
             const SizedBox(height: 10),
             TextField(
               controller: descriptionController,
+              decoration: const InputDecoration(labelText: 'Description'),
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-              ),
+              enabled: isEditing, // Editable only in editing mode
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             Row(
               children: [
-                const Text('Status:'),
-                const Spacer(),
+                const Text('Status: ',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 Text(
-                  isAvailable ? 'Available' : 'Pledged',
+                  widget.gift.status,
                   style: TextStyle(
-                    color: isAvailable ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.bold,
+                    color: widget.gift.status == 'Purchased'
+                        ? Colors.red
+                        : widget.gift.status == 'Pledged'
+                            ? Colors.green
+                            : Colors.black,
+                    fontSize: 16,
                   ),
-                ),
-                Switch(
-                  value: isAvailable,
-                  onChanged: (value) {
-                    setState(() {
-                      isAvailable = value;
-                    });
-                  },
                 ),
               ],
             ),
