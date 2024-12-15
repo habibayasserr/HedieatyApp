@@ -120,7 +120,16 @@ class _GiftListViewState extends State<GiftListView> {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     title: Text(gift.name),
-                    subtitle: Text('Category: ${gift.category}'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Category: ${gift.category}'),
+                        Text(
+                          'Price: ${gift.price.toStringAsFixed(2)} EGP',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
