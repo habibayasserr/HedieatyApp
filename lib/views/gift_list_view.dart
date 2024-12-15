@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/gift_model.dart';
-import '../models/event_model.dart';
-import '../widgets/custom_header.dart';
 import 'gift_details_view.dart';
+import '../models/event_model.dart';
 
 class GiftListView extends StatefulWidget {
   final Event event;
-
   const GiftListView({Key? key, required this.event}) : super(key: key);
 
   @override
@@ -40,6 +38,105 @@ class _GiftListViewState extends State<GiftListView> {
 
   String selectedSortOption = 'Sort by Name (Ascending)';
 
+  void _showGiftDialog({Gift? gift, int? index}) {
+    final TextEditingController nameController =
+        TextEditingController(text: gift?.name);
+    final TextEditingController categoryController =
+        TextEditingController(text: gift?.category);
+    final TextEditingController priceController =
+        TextEditingController(text: gift?.price.toString());
+    final TextEditingController descriptionController =
+        TextEditingController(text: gift?.description);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(gift == null ? 'Add Gift' : 'Edit Gift'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Gift Name'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: categoryController,
+                  decoration: const InputDecoration(labelText: 'Category'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: priceController,
+                  decoration: const InputDecoration(labelText: 'Price (EGP)'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                final category = categoryController.text.trim();
+                final price = double.tryParse(priceController.text.trim());
+                final description = descriptionController.text.trim();
+
+                if (name.isEmpty ||
+                    category.isEmpty ||
+                    price == null ||
+                    description.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill in all fields'),
+                    ),
+                  );
+                  return;
+                }
+
+                if (gift == null) {
+                  // Add new gift
+                  setState(() {
+                    gifts.add(Gift(
+                      name: name,
+                      category: category,
+                      status: 'Available', // Default status
+                      price: price,
+                      description: description,
+                    ));
+                  });
+                } else {
+                  // Update existing gift
+                  setState(() {
+                    gifts[index!] = Gift(
+                      name: name,
+                      category: category,
+                      status: gift.status,
+                      price: price,
+                      description: description,
+                    );
+                  });
+                }
+                Navigator.pop(context);
+              },
+              child: Text(gift == null ? 'Add' : 'Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _sortGifts() {
     switch (selectedSortOption) {
       case 'Sort by Name (Ascending)':
@@ -48,14 +145,11 @@ class _GiftListViewState extends State<GiftListView> {
       case 'Sort by Name (Descending)':
         gifts.sort((a, b) => b.name.compareTo(a.name));
         break;
-      case 'Sort by Price (Low to High)':
-        gifts.sort((a, b) => a.price.compareTo(b.price));
-        break;
-      case 'Sort by Price (High to Low)':
-        gifts.sort((a, b) => b.price.compareTo(a.price));
-        break;
       case 'Sort by Category':
         gifts.sort((a, b) => a.category.compareTo(b.category));
+        break;
+      case 'Sort by Status':
+        gifts.sort((a, b) => a.status.compareTo(b.status));
         break;
     }
   }
@@ -63,14 +157,9 @@ class _GiftListViewState extends State<GiftListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomHeader(
-        title: widget.event.name,
-        onProfileTap: () {
-          // Navigate to Profile
-        },
-        onNotificationTap: () {
-          // Handle Notification
-        },
+      appBar: AppBar(
+        title: const Text('Gifts List'),
+        backgroundColor: Colors.orange,
       ),
       body: Column(
         children: [
@@ -82,9 +171,8 @@ class _GiftListViewState extends State<GiftListView> {
               items: [
                 'Sort by Name (Ascending)',
                 'Sort by Name (Descending)',
-                'Sort by Price (Low to High)',
-                'Sort by Price (High to Low)',
                 'Sort by Category',
+                'Sort by Status',
               ].map((sortOption) {
                 return DropdownMenuItem(
                   value: sortOption,
@@ -102,7 +190,7 @@ class _GiftListViewState extends State<GiftListView> {
               isExpanded: true,
             ),
           ),
-          // Gift List
+          // Gifts List
           Expanded(
             child: ListView.builder(
               itemCount: gifts.length,
@@ -120,17 +208,11 @@ class _GiftListViewState extends State<GiftListView> {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     title: Text(gift.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Category: ${gift.category}'),
-                        Text(
-                          'Price: ${gift.price.toStringAsFixed(2)} EGP',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    subtitle: Text(
+                      'Category: ${gift.category}\nPrice: ${gift.price.toStringAsFixed(2)} EGP',
                     ),
                     onTap: () {
+                      // Navigate to GiftDetailsView in read-only mode
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -138,12 +220,39 @@ class _GiftListViewState extends State<GiftListView> {
                         ),
                       );
                     },
+                    trailing: gift.status == 'Available'
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () =>
+                                    _showGiftDialog(gift: gift, index: index),
+                              ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  setState(() {
+                                    gifts.removeAt(index);
+                                  });
+                                },
+                              ),
+                            ],
+                          )
+                        : null, // Hide Edit/Delete for non-available gifts
                   ),
                 );
               },
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showGiftDialog(),
+        backgroundColor: Colors.orange,
+        child: const Icon(Icons.add),
       ),
     );
   }
