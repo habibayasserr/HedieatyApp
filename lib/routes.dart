@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'views/home_view.dart';
 import 'views/event_list_view.dart';
+
 // Import additional screens as you implement them
 
 class AppRoutes {

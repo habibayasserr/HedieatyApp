@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import '../models/event_model.dart';
 import '../models/gift_model.dart';
 import '../widgets/custom_header.dart';
 import 'gift_details_view.dart';
 
 class GiftListView extends StatefulWidget {
-  const GiftListView({Key? key}) : super(key: key);
+  final Event event;
+
+  const GiftListView({Key? key, required this.event}) : super(key: key);
 
   @override
   _GiftListViewState createState() => _GiftListViewState();
@@ -27,25 +30,6 @@ class _GiftListViewState extends State<GiftListView> {
       description: 'A comprehensive cookbook with recipes for beginners.',
     ),
   ];
-
-  String selectedSortOption = 'Sort by Name (Ascending)';
-
-  void _sortGifts() {
-    switch (selectedSortOption) {
-      case 'Sort by Name (Ascending)':
-        gifts.sort((a, b) => a.name.compareTo(b.name));
-        break;
-      case 'Sort by Name (Descending)':
-        gifts.sort((a, b) => b.name.compareTo(a.name));
-        break;
-      case 'Sort by Category':
-        gifts.sort((a, b) => a.category.compareTo(b.category));
-        break;
-      case 'Sort by Status':
-        gifts.sort((a, b) => a.status.compareTo(b.status));
-        break;
-    }
-  }
 
   Future<void> _navigateToGiftDetails({Gift? gift, int? index}) async {
     final result = await Navigator.push(
@@ -70,7 +54,7 @@ class _GiftListViewState extends State<GiftListView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomHeader(
-        title: 'Gift List',
+        title: widget.event.name,
         onProfileTap: () {
           Navigator.pushNamed(context, '/profile');
         },
@@ -80,32 +64,6 @@ class _GiftListViewState extends State<GiftListView> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              value: selectedSortOption,
-              items: [
-                'Sort by Name (Ascending)',
-                'Sort by Name (Descending)',
-                'Sort by Category',
-                'Sort by Status',
-              ].map((sortOption) {
-                return DropdownMenuItem(
-                  value: sortOption,
-                  child: Text(sortOption),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedSortOption = value;
-                    _sortGifts();
-                  });
-                }
-              },
-              isExpanded: true,
-            ),
-          ),
           Expanded(
             child: ListView.builder(
               itemCount: gifts.length,

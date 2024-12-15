@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/event_model.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/custom_footer.dart';
+import '../views/gift_list_view.dart';
 
 class EventListView extends StatefulWidget {
   const EventListView({Key? key}) : super(key: key);
@@ -304,6 +305,15 @@ class _EventListViewState extends State<EventListView> {
                         Text('Category: ${event.category}'),
                       ],
                     ),
+                    onTap: () {
+                      // Navigate to GiftListView when the card is tapped
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GiftListView(event: event),
+                        ),
+                      );
+                    },
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
