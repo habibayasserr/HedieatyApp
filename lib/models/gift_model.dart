@@ -3,7 +3,7 @@ class Gift {
   final String category;
   final String status; // "Available" or "Pledged"
   final double price;
-  final double description;
+  final String description;
 
   Gift({
     required this.name,
