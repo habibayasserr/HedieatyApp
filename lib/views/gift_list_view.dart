@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/event_model.dart';
 import '../models/gift_model.dart';
 import '../widgets/custom_header.dart';
 import 'gift_details_view.dart';
+import '../models/event_model.dart';
 
 class GiftListView extends StatefulWidget {
-  final Event event;
+  final Event event; // Pass the associated event
 
   const GiftListView({Key? key, required this.event}) : super(key: key);
 
@@ -19,34 +19,38 @@ class _GiftListViewState extends State<GiftListView> {
       name: 'Smartwatch',
       category: 'Electronics',
       status: 'Available',
-      price: 150.0,
+      price: 1500.0,
       description: 'A modern smartwatch with various health features.',
     ),
     Gift(
       name: 'Cookbook',
       category: 'Books',
       status: 'Pledged',
-      price: 20.0,
+      price: 200.0,
       description: 'A comprehensive cookbook with recipes for beginners.',
+    ),
+    Gift(
+      name: 'Gaming Console',
+      category: 'Electronics',
+      status: 'Purchased',
+      price: 10000.0,
+      description: 'A high-end gaming console with advanced features.',
     ),
   ];
 
-  Future<void> _navigateToGiftDetails({Gift? gift, int? index}) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GiftDetailsView(gift: gift),
-      ),
-    );
+  String selectedSortOption = 'Sort by Name';
 
-    if (result != null && result is Gift) {
-      setState(() {
-        if (gift == null) {
-          gifts.add(result); // Add new gift
-        } else {
-          gifts[index!] = result; // Update existing gift
-        }
-      });
+  void _sortGifts() {
+    switch (selectedSortOption) {
+      case 'Sort by Name':
+        gifts.sort((a, b) => a.name.compareTo(b.name));
+        break;
+      case 'Sort by Category':
+        gifts.sort((a, b) => a.category.compareTo(b.category));
+        break;
+      case 'Sort by Price':
+        gifts.sort((a, b) => a.price.compareTo(b.price));
+        break;
     }
   }
 
@@ -56,48 +60,85 @@ class _GiftListViewState extends State<GiftListView> {
       appBar: CustomHeader(
         title: widget.event.name,
         onProfileTap: () {
-          Navigator.pushNamed(context, '/profile');
+          // Navigate to Profile
         },
         onNotificationTap: () {
-          // Handle notification
+          // Handle Notification
         },
       ),
       body: Column(
         children: [
+          // Sorting Dropdown
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: DropdownButton<String>(
+              value: selectedSortOption,
+              items: [
+                'Sort by Name',
+                'Sort by Category',
+                'Sort by Price',
+              ].map((sortOption) {
+                return DropdownMenuItem(
+                  value: sortOption,
+                  child: Text(sortOption),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    selectedSortOption = value;
+                    _sortGifts();
+                  });
+                }
+              },
+              isExpanded: true,
+            ),
+          ),
+          // Gift List
           Expanded(
             child: ListView.builder(
               itemCount: gifts.length,
               itemBuilder: (context, index) {
                 final gift = gifts[index];
+                // Change card color based on gift status
+                final Color cardColor = gift.status == 'Purchased'
+                    ? Colors.red[100]!
+                    : gift.status == 'Pledged'
+                        ? Colors.green[100]!
+                        : Colors.white;
+
                 return Card(
+                  color: cardColor,
                   margin:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     title: Text(gift.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Category: ${gift.category}'),
-                        Text('Price: \$${gift.price.toStringAsFixed(2)}'),
-                        Text(
-                          'Status: ${gift.status}',
-                          style: TextStyle(
-                            color: gift.status == 'Available'
-                                ? Colors.green
-                                : Colors.red,
-                          ),
+                    subtitle: Text('Category: ${gift.category}'),
+                    onTap: () {
+                      // Navigate to Gift Details
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GiftDetailsView(gift: gift),
                         ),
-                        Text('Description: ${gift.description}'),
-                      ],
-                    ),
+                      );
+                    },
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (gift.status == 'Available')
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => _navigateToGiftDetails(
-                                gift: gift, index: index),
+                            onPressed: () {
+                              // Navigate to Gift Details for Editing
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      GiftDetailsView(gift: gift),
+                                ),
+                              );
+                            },
                           ),
                         if (gift.status == 'Available')
                           IconButton(
@@ -116,11 +157,6 @@ class _GiftListViewState extends State<GiftListView> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToGiftDetails(),
-        backgroundColor: Colors.orange,
-        child: const Icon(Icons.add),
       ),
     );
   }
