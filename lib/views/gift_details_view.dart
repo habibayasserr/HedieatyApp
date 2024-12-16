@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 class GiftDetailsView extends StatefulWidget {
-  final Gift gift;
-  final bool isEditable; // Add this parameter to control edit mode
+  final Gift? gift; // Nullable for new gift addition
+  final bool isEditable;
 
-  const GiftDetailsView({Key? key, required this.gift, this.isEditable = false})
+  const GiftDetailsView({Key? key, this.gift, this.isEditable = false})
       : super(key: key);
 
   @override
@@ -16,26 +16,37 @@ class GiftDetailsView extends StatefulWidget {
 
 class _GiftDetailsViewState extends State<GiftDetailsView> {
   final ImagePicker _picker = ImagePicker();
-  late String status; // Status of the gift
-  String? imagePath; // Holds the image path
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController categoryController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+
+  late String status;
+  String? imagePath;
   bool _isPickerActive = false;
 
   @override
   void initState() {
     super.initState();
-    status = widget.gift.status; // Initialize with the gift's status
-    imagePath = widget.gift.imagePath;
+    if (widget.gift != null) {
+      nameController.text = widget.gift!.name;
+      categoryController.text = widget.gift!.category;
+      priceController.text = widget.gift!.price.toStringAsFixed(2);
+      descriptionController.text = widget.gift!.description;
+      status = widget.gift!.status;
+      imagePath = widget.gift!.imagePath;
+    } else {
+      status = 'Available'; // Default status for new gifts
+    }
   }
 
   Future<void> _pickImage() async {
-    if (_isPickerActive) return; // Prevent multiple calls
-    setState(() {
-      _isPickerActive = true;
-    });
+    if (_isPickerActive) return;
+    _isPickerActive = true;
 
     try {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
+      if (pickedFile != null && mounted) {
         setState(() {
           imagePath = pickedFile.path;
         });
@@ -43,21 +54,64 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
     } catch (e) {
       print('Image Picker Error: $e');
     } finally {
-      setState(() {
-        _isPickerActive = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isPickerActive = false;
+        });
+      }
     }
+  }
+
+  void _saveGift() {
+    final String name = nameController.text.trim();
+    final String category = categoryController.text.trim();
+    final String description = descriptionController.text.trim();
+    final double? price = double.tryParse(priceController.text.trim());
+
+    if (name.isEmpty ||
+        category.isEmpty ||
+        description.isEmpty ||
+        price == null ||
+        imagePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All fields are required, including an image.'),
+        ),
+      );
+      return;
+    }
+
+    Navigator.pop(
+      context,
+      Gift(
+        name: name,
+        category: category,
+        status: status,
+        price: price,
+        description: description,
+        imagePath: imagePath,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    categoryController.dispose();
+    priceController.dispose();
+    descriptionController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gift Details'),
+        title: Text(widget.gift == null ? 'Add Gift' : 'Edit Gift'),
         backgroundColor: Colors.orange,
       ),
       body: IgnorePointer(
-        ignoring: !widget.isEditable, // Disable user input if not editable
+        ignoring: !widget.isEditable,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -92,7 +146,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               TextField(
-                controller: TextEditingController(text: widget.gift.name),
+                controller: nameController,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                 ),
@@ -105,7 +159,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               TextField(
-                controller: TextEditingController(text: widget.gift.category),
+                controller: categoryController,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                 ),
@@ -118,8 +172,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               TextField(
-                controller: TextEditingController(
-                    text: widget.gift.price.toStringAsFixed(2)),
+                controller: priceController,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                 ),
@@ -133,8 +186,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               TextField(
-                controller:
-                    TextEditingController(text: widget.gift.description),
+                controller: descriptionController,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                 ),
@@ -162,7 +214,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                               status = value ? 'Pledged' : 'Available';
                             });
                           }
-                        : null, // Disable toggle in read-only mode
+                        : null,
                     activeColor: Colors.green,
                     inactiveTrackColor: Colors.grey,
                   ),
@@ -182,20 +234,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
               if (widget.isEditable)
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Save changes logic (allow saving for new or updated pledge)
-                      Navigator.pop(
-                        context,
-                        Gift(
-                          name: widget.gift.name,
-                          category: widget.gift.category,
-                          status: status,
-                          price: widget.gift.price,
-                          description: widget.gift.description,
-                          imagePath: imagePath,
-                        ),
-                      );
-                    },
+                    onPressed: _saveGift,
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange),
                     child: const Text('Save Changes'),

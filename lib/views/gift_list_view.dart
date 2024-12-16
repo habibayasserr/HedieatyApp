@@ -60,7 +60,7 @@ class _GiftListViewState extends State<GiftListView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gifts List'),
+        title: Text(widget.event.name),
         backgroundColor: Colors.orange,
       ),
       body: Column(
