@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 class GiftDetailsView extends StatefulWidget {
   final Gift gift;
-  final bool isEditable; // Controls edit mode
+  final bool isEditable; // Add this parameter to control edit mode
 
   const GiftDetailsView({Key? key, required this.gift, this.isEditable = false})
       : super(key: key);
@@ -41,7 +41,6 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
         });
       }
     } catch (e) {
-      // Handle any errors gracefully
       print('Image Picker Error: $e');
     } finally {
       setState(() {
@@ -58,7 +57,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
         backgroundColor: Colors.orange,
       ),
       body: IgnorePointer(
-        ignoring: !widget.isEditable, // Ignore user input if not editable
+        ignoring: !widget.isEditable, // Disable user input if not editable
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -160,7 +159,6 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                     onChanged: widget.isEditable
                         ? (value) {
                             setState(() {
-                              if (status == 'Pledged') return;
                               status = value ? 'Pledged' : 'Available';
                             });
                           }
@@ -185,16 +183,18 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      if (status == 'Pledged') {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Cannot modify pledged gifts!'),
-                          ),
-                        );
-                        return;
-                      }
-                      // Logic to save updated gift details
-                      Navigator.pop(context, 'save');
+                      // Save changes logic (allow saving for new or updated pledge)
+                      Navigator.pop(
+                        context,
+                        Gift(
+                          name: widget.gift.name,
+                          category: widget.gift.category,
+                          status: status,
+                          price: widget.gift.price,
+                          description: widget.gift.description,
+                          imagePath: imagePath,
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange),
