@@ -2,27 +2,22 @@ import '../services/auth_service.dart';
 
 class AuthViewModel {
   final AuthService _authService = AuthService();
+  bool _isSignedIn = false;
+
+  bool get isSignedIn => _isSignedIn;
 
   Future<void> signIn(String email, String password) async {
     final user = await _authService.signIn(email, password);
-    if (user != null) {
-      print("User signed in: ${user.email}");
-    } else {
-      print("Sign in failed.");
-    }
+    _isSignedIn = user != null;
   }
 
   Future<void> register(String email, String password) async {
     final user = await _authService.register(email, password);
-    if (user != null) {
-      print("User registered: ${user.email}");
-    } else {
-      print("Registration failed.");
-    }
+    _isSignedIn = user != null;
   }
 
   void signOut() {
     _authService.signOut();
-    print("User signed out.");
+    _isSignedIn = false;
   }
 }
