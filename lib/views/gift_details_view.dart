@@ -1,10 +1,54 @@
 import 'package:flutter/material.dart';
 import '../models/gift_model.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
-class GiftDetailsView extends StatelessWidget {
+class GiftDetailsView extends StatefulWidget {
   final Gift gift;
-  const GiftDetailsView({Key? key, required this.gift}) : super(key: key);
+  final bool isEditable; // Add this parameter to control edit mode
+
+  const GiftDetailsView({Key? key, required this.gift, this.isEditable = false})
+      : super(key: key);
+
+  @override
+  _GiftDetailsViewState createState() => _GiftDetailsViewState();
+}
+
+class _GiftDetailsViewState extends State<GiftDetailsView> {
+  final ImagePicker _picker = ImagePicker();
+  late String status; // Status of the gift
+  String? imagePath; // Holds the image path
+  bool _isPickerActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    status = widget.gift.status; // Initialize with the gift's status
+    imagePath = widget.gift.imagePath;
+  }
+
+  Future<void> _pickImage() async {
+    if (_isPickerActive) return; // Prevent multiple calls
+    setState(() {
+      _isPickerActive = true;
+    });
+
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          imagePath = pickedFile.path;
+        });
+      }
+    } catch (e) {
+      // Handle any errors gracefully
+      print('Image Picker Error: $e');
+    } finally {
+      setState(() {
+        _isPickerActive = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,18 +68,32 @@ class GiftDetailsView extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            Container(
-              height: 150,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
+            GestureDetector(
+              onTap: widget.isEditable
+                  ? () async {
+                      final pickedFile =
+                          await _picker.pickImage(source: ImageSource.gallery);
+                      if (pickedFile != null) {
+                        setState(() {
+                          imagePath = pickedFile.path; // Update the image path
+                        });
+                      }
+                    }
+                  : null, // Disable in non-editable mode
+              child: Container(
+                height: 150,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: imagePath != null
+                    ? Image.file(File(imagePath!), fit: BoxFit.cover)
+                    : const Center(child: Text('Tap to add an image')),
               ),
-              child: gift.imagePath != null
-                  ? Image.file(File(gift.imagePath!), fit: BoxFit.cover)
-                  : const Center(child: Text('No Image Available')),
             ),
+
             const SizedBox(height: 20),
 
             // Gift Name
@@ -43,13 +101,11 @@ class GiftDetailsView extends StatelessWidget {
               'Gift Name',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            IgnorePointer(
-              ignoring: true,
-              child: TextField(
-                controller: TextEditingController(text: gift.name),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
+            TextField(
+              enabled: widget.isEditable,
+              controller: TextEditingController(text: widget.gift.name),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 10),
@@ -59,13 +115,11 @@ class GiftDetailsView extends StatelessWidget {
               'Category',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            IgnorePointer(
-              ignoring: true,
-              child: TextField(
-                controller: TextEditingController(text: gift.category),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
+            TextField(
+              enabled: widget.isEditable,
+              controller: TextEditingController(text: widget.gift.category),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 10),
@@ -75,15 +129,14 @@ class GiftDetailsView extends StatelessWidget {
               'Price (EGP)',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            IgnorePointer(
-              ignoring: true,
-              child: TextField(
-                controller: TextEditingController(
-                    text: '${gift.price.toStringAsFixed(2)} EGP'),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
+            TextField(
+              enabled: widget.isEditable,
+              controller: TextEditingController(
+                  text: widget.gift.price.toStringAsFixed(2)),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 10),
 
@@ -92,44 +145,75 @@ class GiftDetailsView extends StatelessWidget {
               'Description',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            IgnorePointer(
-              ignoring: true,
-              child: TextField(
-                controller: TextEditingController(text: gift.description),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
+            TextField(
+              enabled: widget.isEditable,
+              controller: TextEditingController(text: widget.gift.description),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
               ),
+              maxLines: 3,
             ),
             const SizedBox(height: 20),
 
-            // Gift Status
+            // Gift Status Toggle
             const Text(
               'Status',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            Container(
-              padding: const EdgeInsets.all(8),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: gift.status == 'Pledged'
-                    ? Colors.red[100]
-                    : Colors.green[100],
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Center(
-                child: Text(
-                  gift.status == 'Pledged' ? 'Pledged' : 'Available',
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Available / Pledged:',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                Switch(
+                  value: status == 'Pledged',
+                  onChanged: widget.isEditable
+                      ? (value) {
+                          setState(() {
+                            if (status == 'Pledged')
+                              return; // Restrict modification
+                            status = value ? 'Pledged' : 'Available';
+                          });
+                        }
+                      : null, // Disable toggle in read-only mode
+                  activeColor: Colors.green,
+                  inactiveTrackColor: Colors.grey,
+                ),
+                Text(
+                  status,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
+                    color: status == 'Pledged' ? Colors.red : Colors.green,
                     fontWeight: FontWeight.bold,
-                    color: gift.status == 'Pledged' ? Colors.red : Colors.green,
                   ),
                 ),
-              ),
+              ],
             ),
+            const SizedBox(height: 20),
+
+            // Save Changes Button
+            if (widget.isEditable)
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (status == 'Pledged') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Cannot modify pledged gifts!'),
+                        ),
+                      );
+                      return;
+                    }
+                    // Logic to save updated gift details
+                    Navigator.pop(context, 'save');
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                  child: const Text('Save Changes'),
+                ),
+              ),
           ],
         ),
       ),
