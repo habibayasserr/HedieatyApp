@@ -23,6 +23,7 @@ dependencies:
   image_picker: ^0.8.7+5
   firebase_messaging: ^15.1.6
   flutter_local_notifications: ^16.1.0
+  lottie: ^1.2.1
   #path: ^1.9.0
 
 
@@ -50,3 +51,4 @@ flutter:
     # Add assets from the images directory to the application.
     - assets/images/
     - assets/fonts/
+    #- assets/animations/loading_gift.json

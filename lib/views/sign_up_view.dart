@@ -10,6 +10,8 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -18,13 +20,32 @@ class _SignUpViewState extends State<SignUpView> {
   bool _isLoading = false;
 
   final RegExp _emailRegex = RegExp(
-    r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", // Matches a valid domain structure
+    r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", // Valid domain structure
   );
+
+  final RegExp _egyptianPhoneRegex =
+      RegExp(r'^01[0-2,5]{1}[0-9]{8}$'); // Egyptian phone number
 
   Future<void> _signUp() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (name.isEmpty || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name and phone number are required.')),
+      );
+      return;
+    }
+
+    if (!_egyptianPhoneRegex.hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid Egyptian phone number.')),
+      );
+      return;
+    }
 
     if (!_emailRegex.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -49,7 +70,9 @@ class _SignUpViewState extends State<SignUpView> {
     }
 
     setState(() => _isLoading = true);
-    await _authViewModel.register(email, password);
+
+    await _authViewModel.register(email, password, name, phone);
+
     setState(() => _isLoading = false);
 
     if (_authViewModel.isSignedIn) {
@@ -72,59 +95,80 @@ class _SignUpViewState extends State<SignUpView> {
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Create Account',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Sign up to get started'),
-                  const SizedBox(height: 30),
-                  TextField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Create Account',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 10),
+                    const Text('Sign up to get started'),
+                    const SizedBox(height: 30),
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Name',
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Confirm Password',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: _phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Phone Number',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.phone,
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _signUp,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      minimumSize: const Size(double.infinity, 50),
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
                     ),
-                    child: const Text('Sign Up'),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Already have an account? Sign In'),
-                  ),
-                ],
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: _confirmPasswordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm Password',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _signUp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text('Sign Up'),
+                    ),
+                    const SizedBox(height: 20),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Already have an account? Sign In'),
+                    ),
+                  ],
+                ),
               ),
             ),
     );
