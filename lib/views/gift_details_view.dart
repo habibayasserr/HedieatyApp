@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 class GiftDetailsView extends StatefulWidget {
   final Gift gift;
-  final bool isEditable; // Add this parameter to control edit mode
+  final bool isEditable; // Controls edit mode
 
   const GiftDetailsView({Key? key, required this.gift, this.isEditable = false})
       : super(key: key);
@@ -57,164 +57,152 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
         title: const Text('Gift Details'),
         backgroundColor: Colors.orange,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gift Image
-            const Text(
-              'Gift Image',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: widget.isEditable
-                  ? () async {
-                      final pickedFile =
-                          await _picker.pickImage(source: ImageSource.gallery);
-                      if (pickedFile != null) {
-                        setState(() {
-                          imagePath = pickedFile.path; // Update the image path
-                        });
+      body: IgnorePointer(
+        ignoring: !widget.isEditable, // Ignore user input if not editable
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Gift Image
+              const Text(
+                'Gift Image',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: widget.isEditable ? _pickImage : null,
+                child: Container(
+                  height: 150,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: imagePath != null
+                      ? Image.file(File(imagePath!), fit: BoxFit.cover)
+                      : const Center(child: Text('Tap to add an image')),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Gift Name
+              const Text(
+                'Gift Name',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              TextField(
+                controller: TextEditingController(text: widget.gift.name),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Gift Category
+              const Text(
+                'Category',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              TextField(
+                controller: TextEditingController(text: widget.gift.category),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Gift Price
+              const Text(
+                'Price (EGP)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              TextField(
+                controller: TextEditingController(
+                    text: widget.gift.price.toStringAsFixed(2)),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 10),
+
+              // Gift Description
+              const Text(
+                'Description',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              TextField(
+                controller:
+                    TextEditingController(text: widget.gift.description),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 20),
+
+              // Gift Status Toggle
+              const Text(
+                'Status',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Available / Pledged:',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  Switch(
+                    value: status == 'Pledged',
+                    onChanged: widget.isEditable
+                        ? (value) {
+                            setState(() {
+                              if (status == 'Pledged') return;
+                              status = value ? 'Pledged' : 'Available';
+                            });
+                          }
+                        : null, // Disable toggle in read-only mode
+                    activeColor: Colors.green,
+                    inactiveTrackColor: Colors.grey,
+                  ),
+                  Text(
+                    status,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: status == 'Pledged' ? Colors.red : Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Save Changes Button
+              if (widget.isEditable)
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (status == 'Pledged') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Cannot modify pledged gifts!'),
+                          ),
+                        );
+                        return;
                       }
-                    }
-                  : null, // Disable in non-editable mode
-              child: Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: imagePath != null
-                    ? Image.file(File(imagePath!), fit: BoxFit.cover)
-                    : const Center(child: Text('Tap to add an image')),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Gift Name
-            const Text(
-              'Gift Name',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              enabled: widget.isEditable,
-              controller: TextEditingController(text: widget.gift.name),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Gift Category
-            const Text(
-              'Category',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              enabled: widget.isEditable,
-              controller: TextEditingController(text: widget.gift.category),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Gift Price
-            const Text(
-              'Price (EGP)',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              enabled: widget.isEditable,
-              controller: TextEditingController(
-                  text: widget.gift.price.toStringAsFixed(2)),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 10),
-
-            // Gift Description
-            const Text(
-              'Description',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              enabled: widget.isEditable,
-              controller: TextEditingController(text: widget.gift.description),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 20),
-
-            // Gift Status Toggle
-            const Text(
-              'Status',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Available / Pledged:',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-                Switch(
-                  value: status == 'Pledged',
-                  onChanged: widget.isEditable
-                      ? (value) {
-                          setState(() {
-                            if (status == 'Pledged')
-                              return; // Restrict modification
-                            status = value ? 'Pledged' : 'Available';
-                          });
-                        }
-                      : null, // Disable toggle in read-only mode
-                  activeColor: Colors.green,
-                  inactiveTrackColor: Colors.grey,
-                ),
-                Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: status == 'Pledged' ? Colors.red : Colors.green,
-                    fontWeight: FontWeight.bold,
+                      // Logic to save updated gift details
+                      Navigator.pop(context, 'save');
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange),
+                    child: const Text('Save Changes'),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Save Changes Button
-            if (widget.isEditable)
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (status == 'Pledged') {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Cannot modify pledged gifts!'),
-                        ),
-                      );
-                      return;
-                    }
-                    // Logic to save updated gift details
-                    Navigator.pop(context, 'save');
-                  },
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                  child: const Text('Save Changes'),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
