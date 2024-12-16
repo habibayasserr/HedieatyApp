@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      initialRoute: '/signin', // Starting page
+      initialRoute: '/splash', // Starting page
       routes: AppRoutes.getRoutes(), // Add routes here
     );
   }

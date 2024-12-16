@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'sign_in_view.dart'; // Replace with your Sign In/Sign Up page
-import 'pledged_gifts_view.dart'; // Placeholder for "My Pledged Gifts" page
+import 'sign_in_view.dart';
+import 'pledged_gifts_view.dart'; //
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -18,7 +18,7 @@ class _ProfileViewState extends State<ProfileView> {
   void _signOut() async {
     try {
       await FirebaseAuth.instance.signOut();
-      // Navigate to the Auth page after signing out
+      // Navigate to the sign in page after signing out
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const SignInView()),

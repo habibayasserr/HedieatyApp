@@ -4,6 +4,7 @@ import 'views/event_list_view.dart';
 import 'views/sign_in_view.dart';
 import 'views/sign_up_view.dart';
 import 'views/profile_view.dart';
+import 'views/splash_view.dart';
 // Import additional screens as you implement them
 
 class AppRoutes {
@@ -14,6 +15,7 @@ class AppRoutes {
       '/signin': (context) => SignInView(),
       '/signup': (context) => SignUpView(),
       '/profile': (context) => const ProfileView(),
+      '/splash': (context) => const SplashView(),
       // '/notifications': (context) => const NotificationsView(),
     };
   }
