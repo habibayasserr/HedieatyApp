@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../viewmodels/profile_viewmodel.dart';
 import 'sign_in_view.dart';
-import 'pledged_gifts_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -11,9 +10,9 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  final User? currentUser = FirebaseAuth.instance.currentUser;
+  final ProfileViewModel _viewModel = ProfileViewModel();
   bool notificationsEnabled = false; // Static for now
-  bool isEditing = false; // Toggle edit mode
+  bool isEditing = false; // Toggle to switch between read-only and edit mode
 
   // Controllers for editable fields
   final TextEditingController _nameController = TextEditingController();
@@ -23,46 +22,62 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   void initState() {
     super.initState();
-    _initializeFields();
+    _loadUserProfile();
   }
 
-  // Initialize text fields with current user data
-  void _initializeFields() {
-    _nameController.text = currentUser?.displayName ?? '';
-    _emailController.text = currentUser?.email ?? '';
-    _phoneController.text = ''; // Placeholder, phone isn't in Firebase directly
+  // Load user data using ProfileViewModel
+  Future<void> _loadUserProfile() async {
+    final userData = await _viewModel.fetchUserData();
+    if (userData != null) {
+      setState(() {
+        _nameController.text = userData['name'] ?? '';
+        _phoneController.text = userData['phone'] ?? '';
+        _emailController.text =
+            userData['email'] ?? ''; // Email loaded but non-editable
+      });
+    }
   }
 
-  // Function to update user profile
+  // Update user profile
   Future<void> _updateProfile() async {
-    if (_nameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _phoneController.text.isEmpty) {
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (name.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('All fields are required.')),
       );
       return;
     }
 
-    // Perform profile update
-    try {
-      await currentUser?.updateDisplayName(_nameController.text);
-      await currentUser?.updateEmail(_emailController.text);
+    if (!phone.startsWith('01') || phone.length != 11) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Invalid phone number. Must be 11 digits and start with "01".')),
+      );
+      return;
+    }
 
+    final success = await _viewModel.updateUserProfile(
+      name: name,
+      phone: phone,
+    );
+
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully!')),
       );
-
-      setState(() => isEditing = false); // Exit edit mode
-    } on FirebaseAuthException catch (e) {
+      setState(() => isEditing = false);
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: ${e.message}')),
+        const SnackBar(content: Text('Failed to update profile.')),
       );
     }
   }
 
   void _signOut() async {
-    await FirebaseAuth.instance.signOut();
+    await _viewModel.signOut();
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const SignInView()),
@@ -84,16 +99,18 @@ class _ProfileViewState extends State<ProfileView> {
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 5),
-        TextField(
-          controller: controller,
-          enabled: enabled,
-          keyboardType: inputType,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+        IgnorePointer(
+          ignoring: !enabled, // Disable interaction if not editable
+          child: TextField(
+            controller: controller,
+            keyboardType: inputType,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              filled: !enabled,
+              fillColor: Colors.grey[200], // Grey background when read-only
             ),
-            filled: !enabled,
-            fillColor: Colors.grey[200],
           ),
         ),
         const SizedBox(height: 15),
@@ -121,7 +138,6 @@ class _ProfileViewState extends State<ProfileView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Image and Info
               Center(
                 child: Stack(
                   alignment: Alignment.bottomRight,
@@ -131,22 +147,6 @@ class _ProfileViewState extends State<ProfileView> {
                       backgroundColor: Colors.grey[300],
                       child: const Icon(Icons.person, size: 50),
                     ),
-                    if (isEditing)
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.orange,
-                        child: IconButton(
-                          icon: const Icon(Icons.camera_alt, size: 18),
-                          onPressed: () {
-                            // Placeholder for image picker
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Image upload not implemented')),
-                            );
-                          },
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -167,11 +167,10 @@ class _ProfileViewState extends State<ProfileView> {
               _buildEditableField(
                 label: 'Email',
                 controller: _emailController,
-                enabled: isEditing,
+                enabled: false, // Always read-only
                 inputType: TextInputType.emailAddress,
               ),
 
-              // Save Button
               if (isEditing)
                 Center(
                   child: ElevatedButton(
@@ -189,7 +188,6 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
               const Divider(height: 30, thickness: 1),
 
-              // Notifications
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -209,24 +207,16 @@ class _ProfileViewState extends State<ProfileView> {
               ),
               const Divider(height: 30, thickness: 1),
 
-              // Pledged Gifts
               ListTile(
                 title: const Text(
                   'My Pledged Gifts',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 trailing: const Icon(Icons.arrow_forward),
-                onTap: () {
-                  /* Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const PledgedGiftsView()),
-                  ); */
-                },
+                onTap: () {},
               ),
               const Divider(height: 30, thickness: 1),
 
-              // Sign Out Button
               Center(
                 child: ElevatedButton(
                   onPressed: _signOut,
