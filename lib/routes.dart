@@ -3,7 +3,7 @@ import 'views/home_view.dart';
 import 'views/event_list_view.dart';
 import 'views/sign_in_view.dart';
 import 'views/sign_up_view.dart';
-
+import 'views/profile_view.dart';
 // Import additional screens as you implement them
 
 class AppRoutes {
@@ -13,8 +13,7 @@ class AppRoutes {
       '/events': (context) => const EventListView(), // Event List Page
       '/signin': (context) => SignInView(),
       '/signup': (context) => SignUpView(),
-      // Add more routes here as you implement new screens
-      // '/profile': (context) => const ProfileView(),
+      '/profile': (context) => const ProfileView(),
       // '/notifications': (context) => const NotificationsView(),
     };
   }

@@ -61,7 +61,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.person, color: Colors.black),
           onPressed: () {
             // Uncomment when Profile Screen is implemented
-            // Navigator.pushNamed(context, '/home')
+            Navigator.pushNamed(context, '/profile');
           },
         ),
       ],

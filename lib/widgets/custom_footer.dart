@@ -41,10 +41,9 @@ class CustomFooter extends StatelessWidget {
             case 1:
               Navigator.pushNamed(context, '/home'); // Navigate to Home
               break;
-            /*case 2:
+            case 2:
               Navigator.pushNamed(context, '/profile'); // Navigate to Profile
               break;
-              */
           }
         }
       },
