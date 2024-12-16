@@ -4,6 +4,7 @@ class Gift {
   String status; // "Available" or "Pledged"
   double price;
   String description;
+  String? imagePath; // Add the imagePath field
 
   Gift({
     required this.name,
@@ -11,5 +12,6 @@ class Gift {
     required this.status,
     required this.price,
     required this.description,
+    this.imagePath,
   });
 }

@@ -1,4 +1,6 @@
+import 'dart:io'; // Import for handling files
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/gift_model.dart';
 import 'gift_details_view.dart';
 import '../models/event_model.dart';
@@ -37,7 +39,7 @@ class _GiftListViewState extends State<GiftListView> {
   ];
 
   String selectedSortOption = 'Sort by Name (Ascending)';
-
+  final ImagePicker _picker = ImagePicker();
   void _showGiftDialog({Gift? gift, int? index}) {
     final TextEditingController nameController =
         TextEditingController(text: gift?.name);
@@ -48,90 +50,133 @@ class _GiftListViewState extends State<GiftListView> {
     final TextEditingController descriptionController =
         TextEditingController(text: gift?.description);
 
+    String? imagePath = gift?.imagePath;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(gift == null ? 'Add Gift' : 'Edit Gift'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Gift Name'),
+        return StatefulBuilder(
+          // Use StatefulBuilder for in-dialog setState()
+          builder: (context, dialogSetState) {
+            return AlertDialog(
+              title: Text(gift == null ? 'Add Gift' : 'Edit Gift'),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const Text(
+                      'Gift Image',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () async {
+                        final pickedFile = await ImagePicker()
+                            .pickImage(source: ImageSource.gallery);
+                        if (pickedFile != null) {
+                          dialogSetState(() {
+                            imagePath = pickedFile.path; // Update imagePath
+                          });
+                        }
+                      },
+                      child: Container(
+                        height: 150,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: imagePath != null
+                            ? Image.file(File(imagePath!), fit: BoxFit.cover)
+                            : const Center(
+                                child: Text('Tap to add an image'),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Gift Name'),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: categoryController,
+                      decoration: const InputDecoration(labelText: 'Category'),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: priceController,
+                      decoration:
+                          const InputDecoration(labelText: 'Price (EGP)'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: descriptionController,
+                      decoration:
+                          const InputDecoration(labelText: 'Description'),
+                      maxLines: 3,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: categoryController,
-                  decoration: const InputDecoration(labelText: 'Category'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
                 ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: priceController,
-                  decoration: const InputDecoration(labelText: 'Price (EGP)'),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 3,
+                ElevatedButton(
+                  onPressed: () {
+                    final name = nameController.text.trim();
+                    final category = categoryController.text.trim();
+                    final price = double.tryParse(priceController.text.trim());
+                    final description = descriptionController.text.trim();
+
+                    if (name.isEmpty ||
+                        category.isEmpty ||
+                        price == null ||
+                        description.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please fill in all fields'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (gift == null) {
+                      // Add new gift
+                      setState(() {
+                        gifts.add(Gift(
+                          name: name,
+                          category: category,
+                          status: 'Available',
+                          price: price,
+                          description: description,
+                          imagePath: imagePath,
+                        ));
+                      });
+                    } else {
+                      // Update existing gift
+                      setState(() {
+                        gifts[index!] = Gift(
+                          name: name,
+                          category: category,
+                          status: gift.status,
+                          price: price,
+                          description: description,
+                          imagePath: imagePath,
+                        );
+                      });
+                    }
+                    Navigator.pop(context);
+                  },
+                  child: Text(gift == null ? 'Add' : 'Save'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                final category = categoryController.text.trim();
-                final price = double.tryParse(priceController.text.trim());
-                final description = descriptionController.text.trim();
-
-                if (name.isEmpty ||
-                    category.isEmpty ||
-                    price == null ||
-                    description.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill in all fields'),
-                    ),
-                  );
-                  return;
-                }
-
-                if (gift == null) {
-                  // Add new gift
-                  setState(() {
-                    gifts.add(Gift(
-                      name: name,
-                      category: category,
-                      status: 'Available', // Default status
-                      price: price,
-                      description: description,
-                    ));
-                  });
-                } else {
-                  // Update existing gift
-                  setState(() {
-                    gifts[index!] = Gift(
-                      name: name,
-                      category: category,
-                      status: gift.status,
-                      price: price,
-                      description: description,
-                    );
-                  });
-                }
-                Navigator.pop(context);
-              },
-              child: Text(gift == null ? 'Add' : 'Save'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
