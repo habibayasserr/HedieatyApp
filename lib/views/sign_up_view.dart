@@ -17,22 +17,41 @@ class _SignUpViewState extends State<SignUpView> {
   final AuthViewModel _authViewModel = AuthViewModel();
   bool _isLoading = false;
 
+  final RegExp _emailRegex = RegExp(
+    r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", // Matches a valid domain structure
+  );
+
   Future<void> _signUp() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (!_emailRegex.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
+        const SnackBar(content: Text('Invalid email format.')),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Password must be at least 6 characters.')),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match.')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
-    await _authViewModel.register(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+    await _authViewModel.register(email, password);
     setState(() => _isLoading = false);
 
-    // Navigate to Home if successful
     if (_authViewModel.isSignedIn) {
       Navigator.pushReplacement(
         context,
@@ -40,7 +59,7 @@ class _SignUpViewState extends State<SignUpView> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to sign up')),
+        const SnackBar(content: Text('Failed to sign up.')),
       );
     }
   }
