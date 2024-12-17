@@ -26,7 +26,6 @@ class LocalDatabaseService {
     // Drop tables if they already exist (useful for development)
     await db.execute('DROP TABLE IF EXISTS Users');
     await db.execute('DROP TABLE IF EXISTS Events');
-    await db.execute('DROP TABLE IF EXISTS Gifts');
     await db.execute('DROP TABLE IF EXISTS Friends');
 
     // Create Users table
@@ -36,7 +35,7 @@ class LocalDatabaseService {
       name TEXT NOT NULL,
       phone TEXT NOT NULL UNIQUE,
       email TEXT NOT NULL UNIQUE,
-      preferences TEXT
+     
     )
   ''');
 
@@ -54,30 +53,16 @@ class LocalDatabaseService {
     )
   ''');
 
-    // Create Gifts table
-    await db.execute('''
-    CREATE TABLE Gifts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      category TEXT,
-      price REAL,
-      status TEXT,
-      event_id INTEGER NOT NULL,
-      FOREIGN KEY (event_id) REFERENCES Events (id) ON DELETE CASCADE
-    )
-  ''');
-
     // Create Friends table
     await db.execute('''
     CREATE TABLE Friends (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      phone TEXT NOT NULL,
-      friend_id INTEGER NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES Users (id) ON DELETE CASCADE,
-      FOREIGN KEY (friend_id) REFERENCES Users (id) ON DELETE CASCADE
-    )
+      user_id INTEGER NOT NULL,               
+      friend_user_id INTEGER NOT NULL,         
+      FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+      FOREIGN KEY (friend_user_id) REFERENCES Users(id) ON DELETE CASCADE,
+      PRIMARY KEY (user_id, friend_user_id)   
+    );
+
   ''');
   }
 
