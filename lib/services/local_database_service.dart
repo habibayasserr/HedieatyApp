@@ -66,6 +66,33 @@ class LocalDatabaseService {
   ''');
   }
 
+  // Insert User
+  Future<int> insertUser(Map<String, dynamic> user) async {
+    final db = await database;
+    return await db.insert('Users', user);
+  }
+
+  // Fetch User by email
+  Future<Map<String, dynamic>?> getUserByEmail(String email) async {
+    final db = await database;
+    final result =
+        await db.query('Users', where: 'email = ?', whereArgs: [email]);
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  // Insert Friend
+  Future<void> insertFriend(Map<String, dynamic> friend) async {
+    final db = await database;
+    await db.insert('Friends', friend,
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+  }
+
+  // Fetch Friends for a User
+  Future<List<Map<String, dynamic>>> getFriends(int userId) async {
+    final db = await database;
+    return await db.query('Friends', where: 'user_id = ?', whereArgs: [userId]);
+  }
+
 // **1. Fetch All Events**
   Future<List<Map<String, dynamic>>> getAllEvents() async {
     final db = await database;
