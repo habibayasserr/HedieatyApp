@@ -4,6 +4,8 @@ import '../models/event_model.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/custom_footer.dart';
 import '../views/gift_list_view.dart';
+import '../viewmodels/event_list_viewmodel.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EventListView extends StatefulWidget {
   const EventListView({Key? key}) : super(key: key);
@@ -13,31 +15,29 @@ class EventListView extends StatefulWidget {
 }
 
 class _EventListViewState extends State<EventListView> {
-  final List<Event> events = [
-    Event(
-      name: 'Alice\'s Birthday',
-      category: 'Birthday',
-      date: DateTime.now().add(const Duration(days: 10)),
-      location: 'Alice\'s House',
-      description: 'A fun birthday party with friends and family.',
-    ),
-    Event(
-      name: 'Bob\'s Wedding',
-      category: 'Wedding',
-      date: DateTime.now().add(const Duration(days: 20)),
-      location: 'Central Park',
-      description: 'A beautiful outdoor wedding.',
-    ),
-    Event(
-      name: 'Graduation Party',
-      category: 'Graduation',
-      date: DateTime.now().subtract(const Duration(days: 5)),
-      location: 'University Hall',
-      description: 'Celebrating academic achievements.',
-    ),
-  ];
-
+  List<Event> events = [];
+  final EventListViewModel _viewModel = EventListViewModel();
+  late Future<List<Event>> _eventsFuture;
   String selectedSortOption = 'Sort by Name (Ascending)';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEvents();
+    _eventsFuture = _viewModel.getAllEvents();
+  }
+
+  // Fetch events from the local database
+
+  Future<void> _loadEvents() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    final fetchedEvents = await _viewModel.getAllEventsForUser(userId);
+    setState(() {
+      events = fetchedEvents;
+    });
+  }
 
   // Calculate event status dynamically
   String _calculateStatus(DateTime eventDate) {
@@ -52,37 +52,28 @@ class _EventListViewState extends State<EventListView> {
   }
 
   // Sort events based on the selected criteria
-  void _sortEvents() {
+  List<Event> _sortEvents(List<Event> events) {
     switch (selectedSortOption) {
       case 'Sort by Name (Ascending)':
         events.sort((a, b) => a.name.compareTo(b.name));
         break;
-
       case 'Sort by Name (Descending)':
         events.sort((a, b) => b.name.compareTo(a.name));
         break;
-
       case 'Sort by Upcoming Events':
-        events.sort((a, b) => b.date.compareTo(a.date));
+        events.sort((a, b) =>
+            _calculateStatus(a.date).compareTo(_calculateStatus(b.date)));
         break;
-
-      case 'Sort by Current Events':
-        events.sort((a, b) {
-          final statusA = _calculateStatus(a.date);
-          final statusB = _calculateStatus(b.date);
-          return (statusA == 'Current' ? 0 : 1) -
-              (statusB == 'Current' ? 0 : 1);
-        });
-        break;
-
       case 'Sort by Past Events':
-        events.sort((a, b) => a.date.compareTo(b.date));
+        events.sort((a, b) =>
+            _calculateStatus(b.date).compareTo(_calculateStatus(a.date)));
         break;
 
       case 'Sort by Category':
         events.sort((a, b) => a.category.compareTo(b.category));
         break;
     }
+    return events;
   }
 
   // Dialog for adding or editing events
@@ -128,9 +119,7 @@ class _EventListViewState extends State<EventListView> {
                   }).toList(),
                   onChanged: (value) {
                     if (value != null) {
-                      setState(() {
-                        selectedCategory = value;
-                      });
+                      selectedCategory = value;
                     }
                   },
                   decoration: const InputDecoration(
@@ -162,9 +151,7 @@ class _EventListViewState extends State<EventListView> {
                       selectedDate != null
                           ? DateFormat('dd-MM-yyyy').format(selectedDate!)
                           : 'Select Date',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const Spacer(),
                     IconButton(
@@ -208,6 +195,16 @@ class _EventListViewState extends State<EventListView> {
                   return;
                 }
 
+                final loggedInUserId = FirebaseAuth.instance.currentUser?.uid;
+                if (loggedInUserId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content:
+                            Text('Unable to add event. Please log in again.')),
+                  );
+                  return;
+                }
+
                 if (event == null) {
                   // Add new event
                   setState(() {
@@ -217,17 +214,20 @@ class _EventListViewState extends State<EventListView> {
                       date: selectedDate ?? DateTime.now(),
                       location: location,
                       description: description,
+                      userId: loggedInUserId, // Pass the logged-in user's ID
                     ));
                   });
                 } else {
                   // Update existing event
                   setState(() {
                     events[index!] = Event(
+                      id: event.id,
                       name: name,
                       category: selectedCategory,
                       date: selectedDate ?? event.date,
                       location: location,
                       description: description,
+                      userId: event.userId, // Keep the existing user ID
                     );
                   });
                 }
@@ -247,16 +247,11 @@ class _EventListViewState extends State<EventListView> {
     return Scaffold(
       appBar: CustomHeader(
         title: 'Events',
-        onProfileTap: () {
-          // Navigate to profile
-        },
-        onNotificationTap: () {
-          // Navigate to notifications
-        },
+        onProfileTap: () {},
+        onNotificationTap: () {},
       ),
       body: Column(
         children: [
-          // Sorting Dropdown
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: DropdownButton<String>(
@@ -265,7 +260,6 @@ class _EventListViewState extends State<EventListView> {
                 'Sort by Name (Ascending)',
                 'Sort by Name (Descending)',
                 'Sort by Upcoming Events',
-                'Sort by Current Events',
                 'Sort by Past Events',
                 'Sort by Category',
               ].map((sortOption) {
@@ -275,64 +269,92 @@ class _EventListViewState extends State<EventListView> {
                 );
               }).toList(),
               onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedSortOption = value;
-                    _sortEvents();
-                  });
-                }
+                setState(() => selectedSortOption = value!);
               },
               isExpanded: true,
             ),
           ),
-          // Event List
           Expanded(
-            child: ListView.builder(
-              itemCount: events.length,
-              itemBuilder: (context, index) {
-                final event = events[index];
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    title: Text(event.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                            'Date: ${DateFormat('yyyy-MM-dd').format(event.date)}'),
-                        Text('Location: ${event.location}'),
-                        Text('Category: ${event.category}'),
-                      ],
-                    ),
-                    onTap: () {
-                      // Navigate to GiftListView when the card is tapped
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GiftListView(event: event),
+            child: FutureBuilder<List<Event>>(
+              future: _eventsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No events available.'));
+                }
+
+                final sortedEvents = _sortEvents(snapshot.data!);
+
+                return ListView.builder(
+                  itemCount: sortedEvents.length,
+                  itemBuilder: (context, index) {
+                    final event = sortedEvents[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: ListTile(
+                        title: Text(event.name),
+                        subtitle: Text(
+                            'Date: ${DateFormat('yyyy-MM-dd').format(event.date)}\n'
+                            'Location: ${event.location}\n'
+                            'Category: ${event.category}'),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GiftListView(event: event),
+                          ),
                         ),
-                      );
-                    },
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () =>
-                              _showEventDialog(event: event, index: index),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _showEventDialog(event: event),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                final confirmDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Delete Event'),
+                                      content: const Text(
+                                          'Are you sure you want to delete this event?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text('Delete',
+                                              style:
+                                                  TextStyle(color: Colors.red)),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (confirmDelete == true) {
+                                  await _viewModel.deleteEvent(event.id!);
+                                  _loadEvents();
+                                }
+                              },
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            setState(() {
-                              events.removeAt(index);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -344,11 +366,7 @@ class _EventListViewState extends State<EventListView> {
         backgroundColor: Colors.orange,
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: CustomFooter(
-        onTap: (index) {
-          // Navigation logic is handled in CustomFooter
-        },
-      ),
+      bottomNavigationBar: CustomFooter(onTap: (index) {}),
     );
   }
 }

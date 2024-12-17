@@ -1,0 +1,49 @@
+[33m1481a13[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m Initiated the local database files
+[33m7c62224[m Set a new editing functionality for the user to be able edit his/her phone number and name
+[33me00b2e4[m Updated the profile page to include the editing option
+[33mde98abf[m Updated the Profile Page and the Sign Up fields to have the name and phone number
+[33m49223dc[m Utilized Firebase Authentication State Persistence combined with a FirebaseAuth State Listener so that the user remains signed it after the app is restarted or shut down
+[33m6552b96[m Implemented the profile page with the sign out functionality and changed dependencies
+[33m93b6d7a[m Enforced stricter rules for emails and passwords in the sign up page
+[33mb4ca9a8[m Integrated Fire Base Authentication, the user can now sign in and sign up
+[33me68a84e[m Set the mount property before calling setState() in gift details page
+[33m689c3c5[m Allowing the user to save changes after setting a newly added/edited gift as pledged without any restrictions
+[33mf296a27[m Modified the read only view
+[33mbcc8202[m Removed the alret dialog for editing and adding gift details and forwarded it to the gift details page
+[33m00844c4[m Changed the gift details page to be an uneditable view by using ignore pointer instead of read-only
+[33m94f412d[m Removed the edit button from the gift details page and added the status toggle button
+[33m831e5b3[m Added the option of uploading the gift's image when adding/editing its details
+[33mc5cac6a[m Added the edit, delete, and add gift buttons to the gift list screen
+[33m151f205[m Added an option for the user to upload an image of the gift in the gift details page
+[33md05353f[m Modified the gift details page to include a read-only view over the items that are pledged or purchased
+[33m84cd78b[m Displayed the price in the gift card because it wasn't visible to the user
+[33mf7d5dee[m Fixed the sorting function in the gift list page to match the criteria
+[33mf9ab135[m Updated the gift list page to change the color of the card according to the status
+[33m2fb5a28[m Fixed the navigation issue between the event and the gifts list page
+[33md23f5c2[m Implemented the gift list and gift details screens statically without navigation
+[33mc351629[m Added the gifts model
+[33mf77f197[m Modified the header for the user to be able to access the home screen by clicking on the logo
+[33m4e72565[m Modified the bottom navbar to automatically detect the current screen and highlight it
+[33m50a1de9[m Updated the sorting algorithm allowing the user to sort by name ASC and DESC, by category, and by status + Added the header to the page
+[33mf2f84c3[m Added the fields that the user will add and edit in the event
+[33m760f81a[m Fixed the routing issue in the navigation bottom
+[33md5bce16[m Implemnted a skeleten events list page triggered by the Create Event Button
+[33m027993b[m Redesigned the footer to match HCI principles
+[33m6ae57cf[m Changed the design of the header
+[33mf84779a[m Implemented the button that allows the user to manually add friends by their phone number
+[33ma6b5551[m Fixed the issue in the header since it wasn't extending PreferredSizeWidget
+[33m4340601[m Implemented the home page static screen
+[33m7cc5eb1[m Updated the friend card widget
+[33m1e070c3[m Implemented a fixed footer for all pages (Design is not final)
+[33me04fcec[m Implemented a fixed header for all pages (Design is not final)
+[33maa382a9[m Added the friend card wideget that will be used in the homescreen
+[33m38b2650[m Added the need directories and files to follow the MVVM Architecture
+[33m7eab10b[m Fixed the Routing Issue and the User is Able to Sign Out
+[33mf271093[m Added a Valid Method to Allow the User to Update an Event
+[33m2b2475b[m Added a Firestore Test View Page to Test that the CRUD Operations are Working
+[33me8f6a35[m Added a Firestore Service
+[33m3e88328[m Implemented the User Authentication with Firebase Using a Demo Example, Set Base for MVVM Structure, and Added Project Dependencies
+[33m507abd2[m Testing Changes
+[33m846a772[m Initial commit for Flutter project
+[33m98c5d3f[m Initialized Sample App
+[33m9320cb6[m Initial commit
