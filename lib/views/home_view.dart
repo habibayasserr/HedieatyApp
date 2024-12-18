@@ -79,6 +79,18 @@ class _HomeViewState extends State<HomeView> {
         'phone': friendDoc['phone'],
       });
 
+      // Add current user to the other user's 'friends' subcollection
+      await _firestore
+          .collection('users')
+          .doc(friendId)
+          .collection('friends')
+          .doc(_userId)
+          .set({
+        'friend_id': _userId,
+        'name': FirebaseAuth.instance.currentUser?.displayName ?? 'Unknown',
+        'phone': FirebaseAuth.instance.currentUser?.phoneNumber ?? 'Unknown',
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Friend added successfully!')),
       );
