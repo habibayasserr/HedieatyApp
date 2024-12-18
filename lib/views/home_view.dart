@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/custom_footer.dart';
 import '../widgets/friend_card_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -11,39 +13,83 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final List<Map<String, dynamic>> friends = [
-    {
-      'name': 'Alice Johnson',
-      'profileImage': 'assets/images/alice.jpg',
-      'upcomingEvents': 2,
-      'phone': '123-456-7890'
-    },
-    {
-      'name': 'Bob Smith',
-      'profileImage': 'assets/images/bob.jpg',
-      'upcomingEvents': 0,
-      'phone': '987-654-3210'
-    },
-  ];
-
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String? _userId = FirebaseAuth.instance.currentUser?.uid;
   List<Map<String, dynamic>> filteredFriends = [];
+  Future<void> _fetchFriends() async {
+    if (_userId == null) return;
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('friends')
+          .get();
+      setState(() {
+        filteredFriends = querySnapshot.docs.map((doc) {
+          return {
+            'name': doc['name'],
+            'phone': doc['phone'],
+            'profileImage':
+                'assets/images/default_profile.jpg', // Default for now
+            'upcomingEvents': 0, // Placeholder for now
+          };
+        }).toList();
+      });
+    } catch (e) {
+      print('Error fetching friends: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    filteredFriends = friends; // Initialize with all friends
+    _fetchFriends();
   }
 
-  void _addFriend(String name, String phone) {
-    setState(() {
-      friends.add({
-        'name': name,
-        'profileImage': 'assets/images/default_profile.jpg', // Default image
-        'upcomingEvents': 0,
-        'phone': phone,
+  Future<void> _addFriend(String name, String phone) async {
+    if (_userId == null) return;
+
+    try {
+      // Check if friend exists in Firestore
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('phone', isEqualTo: phone)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Friend not found.')),
+        );
+        return;
+      }
+
+      final friendDoc = querySnapshot.docs.first;
+      final friendId = friendDoc.id;
+
+      // Add friend to current user's 'friends' subcollection
+      await _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('friends')
+          .doc(friendId)
+          .set({
+        'friend_id': friendId,
+        'name': friendDoc['name'],
+        'phone': friendDoc['phone'],
       });
-      filteredFriends = friends; // Refresh filtered list
-    });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Friend added successfully!')),
+      );
+
+      _fetchFriends(); // Refresh the friends list
+    } catch (e) {
+      print('Error adding friend: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to add friend.')),
+      );
+    }
   }
 
   void _showAddFriendDialog(BuildContext context) {
@@ -92,9 +138,7 @@ class _HomeViewState extends State<HomeView> {
                   Navigator.pop(context);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill in all fields'),
-                    ),
+                    const SnackBar(content: Text('Please fill in all fields')),
                   );
                 }
               },
@@ -148,7 +192,7 @@ class _HomeViewState extends State<HomeView> {
             child: TextField(
               onChanged: (value) {
                 setState(() {
-                  filteredFriends = friends.where((friend) {
+                  filteredFriends = filteredFriends.where((friend) {
                     return friend['name']
                         .toLowerCase()
                         .contains(value.toLowerCase());
