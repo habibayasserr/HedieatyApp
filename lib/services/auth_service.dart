@@ -33,13 +33,18 @@ class AuthService {
     }
   }
 
-  // Save additional user data to Firestore
   Future<void> saveAdditionalUserData(
       String uid, String name, String phone) async {
     try {
       await _firestore.collection('users').doc(uid).set({
+        'id': uid, // Explicitly set the user ID
         'name': name,
         'phone': phone,
+        'email': _auth.currentUser?.email,
+        'preferences': {
+          'notificationSettings': true, // Default notifications enabled
+          'reminderTime': 3, // Default reminder time in days
+        },
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
