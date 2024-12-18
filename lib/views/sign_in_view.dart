@@ -17,23 +17,27 @@ class _SignInViewState extends State<SignInView> {
   bool _isLoading = false;
 
   Future<void> _signIn() async {
-    setState(() => _isLoading = true);
-    await _authViewModel.signIn(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
-    setState(() => _isLoading = false);
+    try {
+      setState(() => _isLoading = true);
+      await _authViewModel.signIn(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      setState(() => _isLoading = false);
 
-    // Navigate to Home if successful
-    if (_authViewModel.isSignedIn) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeView()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to sign in')),
-      );
+      // Navigate to Home if successful
+      if (_authViewModel.isSignedIn) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeView()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to sign in')),
+        );
+      }
+    } catch (ex) {
+      print(ex.toString());
     }
   }
 

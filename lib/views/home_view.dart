@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hedieaty_application/models/user_model.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/custom_footer.dart';
 import '../widgets/friend_card_widget.dart';
@@ -15,35 +16,31 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String? _userId = FirebaseAuth.instance.currentUser?.uid;
-  List<Map<String, dynamic>> filteredFriends = [];
-  Future<void> _fetchFriends() async {
-    if (_userId == null) return;
-    try {
-      final querySnapshot = await _firestore
-          .collection('users')
-          .doc(_userId)
-          .collection('friends')
-          .get();
-      setState(() {
-        filteredFriends = querySnapshot.docs.map((doc) {
-          return {
-            'name': doc['name'],
-            'phone': doc['phone'],
-            'profileImage':
-                'assets/images/default_profile.jpg', // Default for now
-            'upcomingEvents': 0, // Placeholder for now
-          };
-        }).toList();
-      });
-    } catch (e) {
-      print('Error fetching friends: $e');
-    }
+  String searchQuery = '';
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _fetchFriends() {
+    return _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('friends')
+        .snapshots();
+    // setState(() {
+    //   filteredFriends = querySnapshot.docs.map((doc) {
+    //    return UserModel.fromJson(doc);
+    //     // return {
+    //     //   'name': doc['name'],
+    //     //   'phone': doc['phone'],
+    //     //   'profileImage':
+    //     //       'assets/images/default_profile.jpg', // Default for now
+    //     //   'upcomingEvents': 0, // Placeholder for now
+    //     // };
+    //   }).toList();
+    // });
   }
 
   @override
   void initState() {
     super.initState();
-    _fetchFriends();
   }
 
   Future<void> _addFriend(String name, String phone) async {
@@ -204,11 +201,8 @@ class _HomeViewState extends State<HomeView> {
             child: TextField(
               onChanged: (value) {
                 setState(() {
-                  filteredFriends = filteredFriends.where((friend) {
-                    return friend['name']
-                        .toLowerCase()
-                        .contains(value.toLowerCase());
-                  }).toList();
+                  searchQuery =
+                      value.toLowerCase(); // Update searchQuery correctly
                 });
               },
               decoration: InputDecoration(
@@ -220,20 +214,42 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
           ),
+
           // Friends List
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredFriends.length,
-              itemBuilder: (context, index) {
-                final friend = filteredFriends[index];
-                return FriendCardWidget(
-                  name: friend['name'],
-                  profileImage: friend['profileImage'],
-                  upcomingEvents: friend['upcomingEvents'],
-                  onTap: () {
-                    // Navigate to Gift List
-                  },
-                );
+            child: StreamBuilder(
+              stream: _fetchFriends(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                  List<UserModel> userModels = snapshot.data!.docs.map((doc) {
+                    return UserModel.fromJson(doc.data());
+                  }).toList();
+
+                  // Apply search filter
+                  final filteredUsers = userModels.where((user) {
+                    return user.name.toLowerCase().contains(searchQuery);
+                  }).toList();
+
+                  return ListView.builder(
+                    itemCount: filteredUsers.length,
+                    itemBuilder: (context, index) {
+                      final friend = filteredUsers[index];
+                      return FriendCardWidget(
+                        name: friend.name,
+                        profileImage: friend.imageUrl ??
+                            'assets/images/default_profile.jpg',
+                        upcomingEvents: 0,
+                        onTap: () {
+                          // Navigate to Gift List
+                        },
+                      );
+                    },
+                  );
+                } else if (snapshot.hasError) {
+                  return const Center(child: Text('Error fetching data.'));
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
               },
             ),
           ),
