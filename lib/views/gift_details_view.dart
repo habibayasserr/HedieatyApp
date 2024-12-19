@@ -35,6 +35,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
   String? imagePath; // Local file path
   String? imageBase64; // Base64-encoded string
   bool _isPickerActive = false;
+  bool isAvailable = true; // Default to Available
 
   final List<String> categories = [
     'Electronics',
@@ -58,10 +59,12 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
       priceController.text = widget.gift!.price.toStringAsFixed(2);
       descriptionController.text = widget.gift!.description;
       status = widget.gift!.status;
+      isAvailable = status == 'Available'; // Set toggle based on status
       imageBase64 = widget.gift!.imageBase64; // Use Base64 if available
     } else {
       selectedCategory = categories.first; // Default category
       status = 'Available'; // Default status
+      isAvailable = true; // Default toggle
     }
   }
 
@@ -101,17 +104,19 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
         description.isEmpty ||
         price == null ||
         imageBase64 == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('All fields, including an image, are required.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('All fields, including an image, are required.')),
+        );
+      }
       return;
     }
 
     final Map<String, dynamic> giftData = {
       'name': name,
       'category': category,
-      'status': status,
+      'status': status, // Include status from toggle
       'price': price,
       'description': description,
       'imageBase64': imageBase64, // Store Base64 string
@@ -120,35 +125,49 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
     try {
       if (widget.gift?.id == null) {
         // Add new gift
-        await _firestore
+        await FirebaseFirestore.instance
             .collection('users')
             .doc(_userId)
             .collection('events')
-            .doc(widget.eventId) // Use passed event ID
+            .doc(widget.eventId)
             .collection('gifts')
             .add(giftData);
       } else {
         // Update existing gift
-        await _firestore
+        await FirebaseFirestore.instance
             .collection('users')
             .doc(_userId)
             .collection('events')
-            .doc(widget.eventId) // Use passed event ID
+            .doc(widget.eventId)
             .collection('gifts')
             .doc(widget.gift!.id)
             .update(giftData);
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gift saved successfully!')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gift saved successfully!')),
+        );
+      }
 
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context); // Close the page only if still mounted
+      }
     } catch (e) {
       print('Error saving gift: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to save gift.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save gift.')),
+        );
+      }
+    }
+
+    @override
+    void dispose() {
+      nameController.dispose();
+      priceController.dispose();
+      descriptionController.dispose();
+      super.dispose();
     }
   }
 
@@ -197,9 +216,9 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
             const Text('Gift Name',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             TextField(
-                controller: nameController,
-                decoration:
-                    const InputDecoration(border: OutlineInputBorder())),
+              controller: nameController,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+            ),
             const SizedBox(height: 10),
             const Text('Category',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
@@ -208,8 +227,10 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                   ? selectedCategory
                   : null,
               items: categories
-                  .map((category) =>
-                      DropdownMenuItem(value: category, child: Text(category)))
+                  .map((category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      ))
                   .toList(),
               onChanged: widget.isEditable
                   ? (value) => setState(() => selectedCategory = value)
@@ -220,16 +241,53 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
             const Text('Price (EGP)',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             TextField(
-                controller: priceController,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                keyboardType: TextInputType.number),
+              controller: priceController,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              keyboardType: TextInputType.number,
+            ),
             const SizedBox(height: 10),
             const Text('Description',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                maxLines: 3),
+              controller: descriptionController,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 20),
+            const Text('Status',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Available',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isAvailable ? Colors.green : Colors.grey,
+                  ),
+                ),
+                Switch(
+                  value: isAvailable,
+                  onChanged: widget.isEditable
+                      ? (value) {
+                          setState(() {
+                            isAvailable = value;
+                            status = isAvailable ? 'Available' : 'Pledged';
+                          });
+                        }
+                      : null,
+                  activeColor: Colors.orange,
+                ),
+                Text(
+                  'Pledged',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: !isAvailable ? Colors.green : Colors.grey,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             if (widget.isEditable)
               Center(
