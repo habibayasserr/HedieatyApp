@@ -243,162 +243,6 @@ class _EventListViewState extends State<EventListView> {
     );
   }
 
-  /* void _showEventDialog({Event? event, int? index}) {
-    final TextEditingController nameController =
-        TextEditingController(text: event?.name);
-    final TextEditingController locationController =
-        TextEditingController(text: event?.location);
-    final TextEditingController descriptionController =
-        TextEditingController(text: event?.description);
-    DateTime? selectedDate = event?.date;
-    String selectedCategory = event?.category ?? 'Birthday';
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(event == null ? 'Add Event' : 'Edit Event'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Event Name',
-                    hintText: 'Enter event name',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: selectedCategory,
-                  items: [
-                    'Birthday',
-                    'Wedding',
-                    'Graduation',
-                    'Holiday',
-                    'Engagement'
-                  ].map((category) {
-                    return DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        selectedCategory = value;
-                      });
-                    }
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: locationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Location',
-                    hintText: 'Enter event location',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    hintText: 'Enter event description',
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Text('Date: '),
-                    Text(
-                      selectedDate != null
-                          ? DateFormat('dd-MM-yyyy').format(selectedDate!)
-                          : 'Select Date',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.calendar_today),
-                      onPressed: () async {
-                        final pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate ?? DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
-                        if (pickedDate != null) {
-                          setState(() {
-                            selectedDate = pickedDate;
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                final location = locationController.text.trim();
-                final description = descriptionController.text.trim();
-
-                if (name.isEmpty || location.isEmpty || description.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill in all fields'),
-                    ),
-                  );
-                  return;
-                }
-
-                if (event == null) {
-                  // Add new event
-                  setState(() {
-                    events.add(Event(
-                      name: name,
-                      category: selectedCategory,
-                      date: selectedDate ?? DateTime.now(),
-                      location: location,
-                      description: description,
-                    ));
-                  });
-                } else {
-                  // Update existing event
-                  setState(() {
-                    events[index!] = Event(
-                      name: name,
-                      category: selectedCategory,
-                      date: selectedDate ?? event.date,
-                      location: location,
-                      description: description,
-                    );
-                  });
-                }
-
-                Navigator.pop(context); // Close dialog
-              },
-              child: Text(event == null ? 'Add' : 'Save'),
-            ),
-          ],
-        );
-      },
-    );
-  } */
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -497,8 +341,58 @@ class _EventListViewState extends State<EventListView> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                // Handle event deletion here
+                              onPressed: () async {
+                                final shouldDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Confirm Deletion'),
+                                      content: const Text(
+                                          'Are you sure you want to delete this event?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(
+                                              context, false), // Cancel
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(
+                                              context, true), // Confirm
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (shouldDelete == true) {
+                                  try {
+                                    await _firestore
+                                        .collection('users')
+                                        .doc(_userId)
+                                        .collection('events')
+                                        .doc(event.id)
+                                        .delete();
+
+                                    // Use root context for SnackBar
+                                    final rootContext =
+                                        ScaffoldMessenger.of(context);
+                                    rootContext.showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Event deleted successfully!')),
+                                    );
+                                  } catch (e) {
+                                    final rootContext =
+                                        ScaffoldMessenger.of(context);
+                                    rootContext.showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('Failed to delete event.')),
+                                    );
+                                    print('Error deleting event: $e');
+                                  }
+                                }
                               },
                             ),
                           ],
