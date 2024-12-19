@@ -18,6 +18,49 @@ class _EventListViewState extends State<EventListView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String? _userId = FirebaseAuth.instance.currentUser?.uid;
 
+  Future<void> deleteEvent(String eventId) async {
+    if (_userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not logged in')),
+      );
+      return;
+    }
+
+    try {
+      // Get all gifts in the subcollection
+      final giftsSnapshot = await _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('events')
+          .doc(eventId)
+          .collection('gifts')
+          .get();
+
+      // Delete each gift document
+      for (final doc in giftsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Finally, delete the event document
+      await _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('events')
+          .doc(eventId)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Event and its gifts deleted successfully!')),
+      );
+    } catch (e) {
+      print('Error deleting event: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete event.')),
+      );
+    }
+  }
+
   String selectedSortOption = 'Sort by Name (Ascending)';
 
   // Calculate event status dynamically
@@ -316,7 +359,7 @@ class _EventListViewState extends State<EventListView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                                'Date: ${DateFormat('yyyy-MM-dd').format(event.date)}'),
+                                'Date: ${DateFormat('dd-MM-yyyy').format(event.date)}'),
                             Text('Location: ${event.location}'),
                             Text('Category: ${event.category}'),
                           ],
