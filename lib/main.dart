@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hedieaty_application/services/notification_service.dart';
 import 'routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-   NotificationService.initService();
   runApp(MyApp());
 }
 
