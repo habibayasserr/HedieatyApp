@@ -217,6 +217,20 @@ class _EventListViewState extends State<EventListView> {
                     'location': location,
                     'description': description,
                   });
+                } else {
+                  // Update existing event
+                  await _firestore
+                      .collection('users')
+                      .doc(_userId)
+                      .collection('events')
+                      .doc(event.id)
+                      .update({
+                    'name': name,
+                    'category': selectedCategory,
+                    'date': selectedDate ?? DateTime.now(),
+                    'location': location,
+                    'description': description,
+                  });
                 }
 
                 Navigator.pop(context); // Close dialog
@@ -478,7 +492,7 @@ class _EventListViewState extends State<EventListView> {
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () {
-                                // Handle event editing here
+                                _showEventDialog(event: event);
                               },
                             ),
                             IconButton(
