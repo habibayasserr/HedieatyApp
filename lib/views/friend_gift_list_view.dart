@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/gift_model.dart';
+import 'friend_gift_details_view.dart';
 
 class FriendGiftListView extends StatefulWidget {
   final String friendId; // Friend's user ID
@@ -167,6 +168,16 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
                       child: ListTile(
                         title: Text(gift.name),
                         subtitle: Text('Category: ${gift.category}'),
+                        onTap: () {
+                          // Navigate to FriendGiftDetailsView
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  FriendGiftDetailsView(gift: gift),
+                            ),
+                          );
+                        },
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
