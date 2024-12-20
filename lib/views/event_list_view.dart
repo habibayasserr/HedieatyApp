@@ -302,10 +302,10 @@ class _EventListViewState extends State<EventListView> {
       ),
       body: Column(
         children: [
-          // Sorting Dropdown
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: DropdownButton<String>(
+              key: const Key('events_sort_dropdown'),
               value: selectedSortOption,
               items: [
                 'Sort by Name (Ascending)',
@@ -330,7 +330,6 @@ class _EventListViewState extends State<EventListView> {
               isExpanded: true,
             ),
           ),
-          // Event List
           Expanded(
             child: StreamBuilder<List<Event>>(
               stream: _fetchEvents(),
@@ -349,137 +348,35 @@ class _EventListViewState extends State<EventListView> {
                 _sortEvents(events); // Apply sorting
 
                 return ListView.builder(
+                  key: const Key('events_list_view'),
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     final event = events[index];
                     return Card(
+                      key: Key('event_card_$index'),
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: ListTile(
                         title: Text(
                           event.name,
+                          key: Key('event_name_$index'),
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         subtitle: Text(
                           'Date: ${DateFormat('dd-MM-yyyy').format(event.date)}\nCategory: ${event.category}',
+                          key: Key('event_details_$index'),
                           style:
                               const TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                         onTap: () {
-                          // Show dialog with event details
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: Text(event.name),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Location: ${event.location}'),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Description:',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(event.description),
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Close'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(
-                                          context); // Close the dialog
-                                      // Navigate to GiftListView
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              GiftListView(event: event),
-                                        ),
-                                      );
-                                    },
-                                    child: const Text('View Gifts'),
-                                  ),
-                                ],
-                              );
-                            },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GiftListView(event: event),
+                            ),
                           );
                         },
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () {
-                                _showEventDialog(event: event);
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () async {
-                                final shouldDelete = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('Confirm Deletion'),
-                                      content: const Text(
-                                          'Are you sure you want to delete this event?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(
-                                              context, false), // Cancel
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(
-                                              context, true), // Confirm
-                                          child: const Text('Delete'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-
-                                if (shouldDelete == true) {
-                                  try {
-                                    await _firestore
-                                        .collection('users')
-                                        .doc(_userId)
-                                        .collection('events')
-                                        .doc(event.id)
-                                        .delete();
-
-                                    // Use root context for SnackBar
-                                    final rootContext =
-                                        ScaffoldMessenger.of(context);
-                                    rootContext.showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Event deleted successfully!')),
-                                    );
-                                  } catch (e) {
-                                    final rootContext =
-                                        ScaffoldMessenger.of(context);
-                                    rootContext.showSnackBar(
-                                      const SnackBar(
-                                          content:
-                                              Text('Failed to delete event.')),
-                                    );
-                                    print('Error deleting event: $e');
-                                  }
-                                }
-                              },
-                            ),
-                          ],
-                        ),
                       ),
                     );
                   },
@@ -490,6 +387,7 @@ class _EventListViewState extends State<EventListView> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        key: const Key('add_event_fab'),
         onPressed: () {
           _showEventDialog();
         },

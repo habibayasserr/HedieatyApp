@@ -121,28 +121,36 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('profile_view_scaffold'),
       appBar: AppBar(
+        key: const Key('profile_view_app_bar'),
         title: const Text('Profile'),
         backgroundColor: Colors.orange,
         actions: [
           if (!isEditing)
             IconButton(
+              key: const Key('edit_profile_button'),
               icon: const Icon(Icons.edit),
               onPressed: () => setState(() => isEditing = true),
             ),
         ],
       ),
       body: Padding(
+        key: const Key('profile_view_body'),
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
+          key: const Key('profile_scroll_view'),
           child: Column(
+            key: const Key('profile_view_column'),
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
+                key: const Key('profile_picture_section'),
                 child: Stack(
                   alignment: Alignment.bottomRight,
                   children: [
                     CircleAvatar(
+                      key: const Key('profile_picture_avatar'),
                       radius: 50,
                       backgroundColor: Colors.grey[300],
                       child: const Icon(Icons.person, size: 50),
@@ -151,7 +159,6 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
               ),
               const SizedBox(height: 20),
-
               // Editable Fields
               _buildEditableField(
                 label: 'Name',
@@ -167,13 +174,13 @@ class _ProfileViewState extends State<ProfileView> {
               _buildEditableField(
                 label: 'Email',
                 controller: _emailController,
-                enabled: false, // Always read-only
+                enabled: false,
                 inputType: TextInputType.emailAddress,
               ),
-
               if (isEditing)
                 Center(
                   child: ElevatedButton(
+                    key: const Key('save_profile_changes_button'),
                     onPressed: _updateProfile,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
@@ -187,8 +194,8 @@ class _ProfileViewState extends State<ProfileView> {
                   ),
                 ),
               const Divider(height: 30, thickness: 1),
-
               Row(
+                key: const Key('notification_toggle_row'),
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
@@ -196,6 +203,7 @@ class _ProfileViewState extends State<ProfileView> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Switch(
+                    key: const Key('enable_notifications_switch'),
                     value: notificationsEnabled,
                     onChanged: (value) {
                       setState(() {
@@ -206,8 +214,8 @@ class _ProfileViewState extends State<ProfileView> {
                 ],
               ),
               const Divider(height: 30, thickness: 1),
-
               ListTile(
+                key: const Key('my_pledged_gifts_tile'),
                 title: const Text(
                   'My Pledged Gifts',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -218,9 +226,9 @@ class _ProfileViewState extends State<ProfileView> {
                 },
               ),
               const Divider(height: 30, thickness: 1),
-
               Center(
                 child: ElevatedButton(
+                  key: const Key('sign_out_button'),
                   onPressed: _signOut,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,

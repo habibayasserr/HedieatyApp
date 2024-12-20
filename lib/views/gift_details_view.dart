@@ -187,21 +187,33 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('gift_details_scaffold'),
       appBar: AppBar(
-        title: Text(widget.gift == null ? 'Add Gift' : 'Edit Gift'),
+        key: const Key('gift_details_app_bar'),
+        title: Text(
+          widget.gift == null ? 'Add Gift' : 'Edit Gift',
+          key: const Key('gift_details_title'),
+        ),
         backgroundColor: Colors.orange,
       ),
       body: SingleChildScrollView(
+        key: const Key('gift_details_scroll_view'),
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          key: const Key('gift_details_column'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Gift Image',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              'Gift Image',
+              key: Key('gift_image_title'),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
             GestureDetector(
+              key: const Key('gift_image_gesture_detector'),
               onTap: widget.isEditable ? _pickImage : null,
               child: Container(
+                key: const Key('gift_image_container'),
                 height: 150,
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -213,23 +225,31 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Gift Name',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const Text(
+              'Gift Name',
+              key: Key('gift_name_title'),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             TextField(
+              key: const Key('gift_name_text_field'),
               controller: nameController,
               decoration: const InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
-            const Text('Category',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const Text(
+              'Category',
+              key: Key('gift_category_title'),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             DropdownButtonFormField<String>(
+              key: const Key('gift_category_dropdown'),
               value: categories.contains(selectedCategory)
                   ? selectedCategory
                   : null,
               items: categories
                   .map((category) => DropdownMenuItem(
                         value: category,
-                        child: Text(category),
+                        child: Text(category, key: Key('category_$category')),
                       ))
                   .toList(),
               onChanged: widget.isEditable
@@ -238,36 +258,50 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
               decoration: const InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
-            const Text('Price (EGP)',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const Text(
+              'Price (EGP)',
+              key: Key('gift_price_title'),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             TextField(
+              key: const Key('gift_price_text_field'),
               controller: priceController,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 10),
-            const Text('Description',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const Text(
+              'Description',
+              key: Key('gift_description_title'),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             TextField(
+              key: const Key('gift_description_text_field'),
               controller: descriptionController,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               maxLines: 3,
             ),
             const SizedBox(height: 20),
-            const Text('Status',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const Text(
+              'Status',
+              key: Key('gift_status_title'),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
             Row(
+              key: const Key('gift_status_row'),
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   'Available',
+                  key: const Key('gift_status_available'),
                   style: TextStyle(
                     fontSize: 16,
                     color: isAvailable ? Colors.green : Colors.grey,
                   ),
                 ),
                 Switch(
+                  key: const Key('gift_status_switch'),
                   value: isAvailable,
                   onChanged: widget.isEditable
                       ? (value) {
@@ -281,6 +315,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                 ),
                 Text(
                   'Pledged',
+                  key: const Key('gift_status_pledged'),
                   style: TextStyle(
                     fontSize: 16,
                     color: !isAvailable ? Colors.green : Colors.grey,
@@ -292,6 +327,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
             if (widget.isEditable)
               Center(
                 child: ElevatedButton(
+                  key: const Key('save_changes_button'),
                   onPressed: _saveGift,
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.orange),

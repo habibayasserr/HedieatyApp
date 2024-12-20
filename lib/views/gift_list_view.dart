@@ -56,16 +56,24 @@ class _GiftListViewState extends State<GiftListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('gift_list_scaffold'),
       appBar: AppBar(
-        title: Text(widget.event.name),
+        key: const Key('gift_list_app_bar'),
+        title: Text(
+          widget.event.name,
+          key: const Key('gift_list_title'),
+        ),
         backgroundColor: Colors.orange,
       ),
       body: Column(
+        key: const Key('gift_list_body'),
         children: [
           // Sorting Dropdown
           Padding(
+            key: const Key('gift_list_sorting_dropdown'),
             padding: const EdgeInsets.all(8.0),
             child: DropdownButton<String>(
+              key: const Key('gift_sort_dropdown'),
               value: selectedSortOption,
               items: [
                 'Sort by Name (Ascending)',
@@ -75,7 +83,7 @@ class _GiftListViewState extends State<GiftListView> {
               ].map((sortOption) {
                 return DropdownMenuItem(
                   value: sortOption,
-                  child: Text(sortOption),
+                  child: Text(sortOption, key: Key('sort_option_$sortOption')),
                 );
               }).toList(),
               onChanged: (value) {
@@ -90,43 +98,52 @@ class _GiftListViewState extends State<GiftListView> {
           ),
           // Gifts List
           Expanded(
+            key: const Key('gift_list_stream_builder'),
             child: StreamBuilder<List<Gift>>(
               stream: _fetchGifts(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    key: Key('gift_list_loading'),
+                    child: CircularProgressIndicator(),
+                  );
                 }
                 if (snapshot.hasError) {
-                  return const Center(child: Text('Error fetching gifts.'));
+                  return const Center(
+                    key: Key('gift_list_error'),
+                    child: Text('Error fetching gifts.'),
+                  );
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No gifts found.'));
+                  return const Center(
+                    key: Key('gift_list_empty'),
+                    child: Text('No gifts found.'),
+                  );
                 }
 
                 final gifts = snapshot.data!;
                 _sortGifts(gifts);
 
                 return ListView.builder(
+                  key: const Key('gift_list_view'),
                   itemCount: gifts.length,
                   itemBuilder: (context, index) {
                     final gift = gifts[index];
-                    final Color cardColor = gift.status == 'Purchased'
-                        ? Colors.red[100]!
-                        : gift.status == 'Pledged'
-                            ? Colors.green[100]!
-                            : Colors.white;
-
                     return Card(
-                      color: cardColor,
+                      key: Key('gift_card_$index'),
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: ListTile(
-                        title: Text(gift.name),
+                        key: Key('gift_tile_$index'),
+                        title: Text(
+                          gift.name,
+                          key: Key('gift_name_$index'),
+                        ),
                         subtitle: Text(
                           'Category: ${gift.category}\nPrice: ${gift.price.toStringAsFixed(2)} EGP',
+                          key: Key('gift_details_$index'),
                         ),
                         onTap: () {
-                          // Navigate to GiftDetailsView in read-only mode
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -140,13 +157,14 @@ class _GiftListViewState extends State<GiftListView> {
                         },
                         trailing: gift.status == 'Available'
                             ? Row(
+                                key: Key('gift_actions_$index'),
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
+                                    key: Key('edit_gift_$index'),
                                     icon: const Icon(Icons.edit,
                                         color: Colors.blue),
                                     onPressed: () {
-                                      // Navigate to GiftDetailsView in editable mode
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -160,6 +178,7 @@ class _GiftListViewState extends State<GiftListView> {
                                     },
                                   ),
                                   IconButton(
+                                    key: Key('delete_gift_$index'),
                                     icon: const Icon(Icons.delete,
                                         color: Colors.red),
                                     onPressed: () async {
@@ -184,7 +203,7 @@ class _GiftListViewState extends State<GiftListView> {
                                   ),
                                 ],
                               )
-                            : null, // Hide Edit/Delete for non-available gifts
+                            : null,
                       ),
                     );
                   },
@@ -195,8 +214,8 @@ class _GiftListViewState extends State<GiftListView> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        key: const Key('add_gift_fab'),
         onPressed: () {
-          // Navigate to GiftDetailsView for adding a new gift
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -209,8 +228,7 @@ class _GiftListViewState extends State<GiftListView> {
                   description: '',
                 ),
                 isEditable: true,
-                eventId: widget
-                    .event.id!, // Pass the event ID to the GiftDetailsView
+                eventId: widget.event.id!,
               ),
             ),
           );

@@ -5,10 +5,18 @@ import 'services/notification_service.dart';
 import 'services/firestore_notification_listener.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await NotificationService.initialize(); // Initialize local notifications
+
+  // Try initializing Firebase and handle errors gracefully
+  try {
+    await Firebase.initializeApp();
+    await NotificationService.initialize(); // Initialize local notifications
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Error initializing Firebase: $e');
+  }
+
   runApp(const MyApp());
 }
 
@@ -24,11 +32,14 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    // Fetch current user ID and listen for notifications
-    final String? userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      FirestoreNotificationListener.listenForNotifications(userId);
-    }
+    // Ensure FirebaseAuth is initialized AFTER Firebase.initializeApp()
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final String? userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        FirestoreNotificationListener.listenForNotifications(userId);
+        print('Listening for notifications for user $userId');
+      }
+    });
   }
 
   @override
@@ -39,8 +50,8 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      initialRoute: '/splash', // Starting page
-      routes: AppRoutes.getRoutes(), // Add routes here
+      initialRoute: '/splash',
+      routes: AppRoutes.getRoutes(),
     );
   }
 }

@@ -22,15 +22,12 @@ class CustomFooter extends StatelessWidget {
       case '/events':
         currentIndex = 0; // Events tab
         break;
-      /* case '/profile':
-        currentIndex = 2; // Profile tab
-        break;
-        */
       default:
         currentIndex = 1; // Default to Home tab
     }
 
     return BottomNavigationBar(
+      key: const Key('custom_footer_navigation_bar'),
       currentIndex: currentIndex,
       onTap: (index) {
         if (index != currentIndex) {
@@ -49,15 +46,15 @@ class CustomFooter extends StatelessWidget {
       },
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.event),
+          icon: Icon(Icons.event, key: Key('events_tab_icon')),
           label: 'Events',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
+          icon: Icon(Icons.home, key: Key('home_tab_icon')),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.person),
+          icon: Icon(Icons.person, key: Key('profile_tab_icon')),
           label: 'Profile',
         ),
       ],

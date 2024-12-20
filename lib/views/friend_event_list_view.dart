@@ -92,6 +92,7 @@ class _FriendEventListViewState extends State<FriendEventListView> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: DropdownButton<String>(
+              key: const Key('friend_events_sort_dropdown'),
               value: selectedSortOption,
               items: [
                 'Sort by Name (Ascending)',
@@ -135,20 +136,24 @@ class _FriendEventListViewState extends State<FriendEventListView> {
                 _sortEvents(events); // Apply sorting
 
                 return ListView.builder(
+                  key: const Key('friend_events_list_view'),
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     final event = events[index];
                     return Card(
+                      key: Key('friend_event_card_$index'),
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: ListTile(
                         title: Text(
                           event.name,
+                          key: Key('friend_event_name_$index'),
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         subtitle: Text(
                           'Date: ${DateFormat('dd-MM-yyyy').format(event.date)}\nCategory: ${event.category}',
+                          key: Key('friend_event_details_$index'),
                           style:
                               const TextStyle(fontSize: 14, color: Colors.grey),
                         ),

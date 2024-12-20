@@ -161,6 +161,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('home_view_scaffold'),
       appBar: CustomHeader(
         title: 'Hedieaty',
         onProfileTap: () {
@@ -171,36 +172,32 @@ class _HomeViewState extends State<HomeView> {
         },
       ),
       body: Column(
+        key: const Key('home_view_body'),
         children: [
           // Create Event/List Button
           Padding(
+            key: const Key('create_event_button'),
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton.icon(
               onPressed: () {
-                // Navigate to the Create Event/List page
-                Navigator.pushNamed(context, '/events'); // Placeholder route
+                Navigator.pushNamed(context, '/events');
               },
               icon: const Icon(Icons.add, color: Colors.white),
               label: const Text(
                 'Create Your Own Event/List',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF9800),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
             ),
           ),
           // Search Bar
           Padding(
+            key: const Key('home_search_bar'),
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
+              key: const Key('search_text_field'),
               onChanged: (value) {
                 setState(() {
-                  searchQuery = value.trim().toLowerCase(); // Normalize query
+                  searchQuery = value.trim().toLowerCase();
                 });
               },
               decoration: InputDecoration(
@@ -212,39 +209,48 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
           ),
-
-// Friends List
+          // Friends List
           Expanded(
+            key: const Key('friends_list_view'),
             child: StreamBuilder(
               stream: _fetchFriends(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    key: Key('friends_list_loading'),
+                    child: CircularProgressIndicator(),
+                  );
                 }
                 if (snapshot.hasError) {
-                  return const Center(child: Text('Error fetching data.'));
+                  return const Center(
+                    key: Key('friends_list_error'),
+                    child: Text('Error fetching data.'),
+                  );
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No friends found.'));
+                  return const Center(
+                    key: Key('no_friends_found'),
+                    child: Text('No friends found.'),
+                  );
                 }
 
                 final friends = snapshot.data! as List<Map<String, dynamic>>;
-
-                // Filter friends based on searchQuery
                 final filteredFriends = friends.where((friend) {
                   final name = friend['name'].toString().toLowerCase();
-                  return name.contains(searchQuery); // Case-insensitive match
+                  return name.contains(searchQuery);
                 }).toList();
 
                 return ListView.builder(
+                  key: const Key('filtered_friends_list_view'),
                   itemCount: filteredFriends.length,
                   itemBuilder: (context, index) {
                     final friend = filteredFriends[index];
                     return FriendCardWidget(
+                      key: Key('friend_card_$index'),
                       name: friend['name'],
                       profileImage: friend['imageUrl'] ??
                           'assets/images/default_profile.jpg',
-                      upcomingEvents: 0, // Placeholder for now
+                      upcomingEvents: 0,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -263,6 +269,7 @@ class _HomeViewState extends State<HomeView> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        key: const Key('add_friend_fab'),
         onPressed: () {
           _showAddFriendDialog(context);
         },
@@ -270,8 +277,9 @@ class _HomeViewState extends State<HomeView> {
         child: const Icon(Icons.person_add),
       ),
       bottomNavigationBar: CustomFooter(
+        key: const Key('home_footer_navigation'),
         onTap: (index) {
-          // Navigation logic is handled in CustomFooter
+          // Navigation logic
         },
       ),
     );

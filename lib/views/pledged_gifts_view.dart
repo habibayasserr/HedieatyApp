@@ -39,45 +39,67 @@ class PledgedGiftsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('pledged_gifts_scaffold'),
       appBar: AppBar(
+        key: const Key('pledged_gifts_app_bar'),
         title: const Text('My Pledged Gifts'),
         backgroundColor: Colors.orange,
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
+        key: const Key('pledged_gifts_stream_builder'),
         stream: _fetchPledgedGifts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              key: Key('pledged_gifts_loading'),
+              child: CircularProgressIndicator(),
+            );
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Error fetching pledged gifts.'));
+            return const Center(
+              key: Key('pledged_gifts_error'),
+              child: Text('Error fetching pledged gifts.'),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No pledged gifts.'));
+            return const Center(
+              key: Key('pledged_gifts_empty'),
+              child: Text('No pledged gifts.'),
+            );
           }
 
           final gifts = snapshot.data!;
           return ListView.builder(
+            key: const Key('pledged_gifts_list_view'),
             itemCount: gifts.length,
             itemBuilder: (context, index) {
               final gift = gifts[index];
               return Card(
+                key: Key('pledged_gift_card_$index'),
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 color: gift['status'] == 'Pending'
                     ? Colors.green[100]
                     : Colors.red[100],
                 child: ListTile(
-                  title: Text(gift['name']),
+                  key: Key('pledged_gift_tile_$index'),
+                  title: Text(
+                    gift['name'],
+                    key: Key('pledged_gift_name_$index'),
+                  ),
                   subtitle: Column(
+                    key: Key('pledged_gift_details_$index'),
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Friend: ${gift['friendName']}'),
                       Text('Due Date: ${gift['dueDate']}'),
                     ],
                   ),
-                  trailing: Text(gift['status']),
+                  trailing: Text(
+                    gift['status'],
+                    key: Key('pledged_gift_status_$index'),
+                  ),
                   onTap: () {
-                    // Navigate to FriendGiftDetailsView
+                    // Navigate to gift details if needed
                   },
                 ),
               );

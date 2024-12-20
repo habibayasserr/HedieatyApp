@@ -44,22 +44,36 @@ class _SignInViewState extends State<SignInView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      key: const Key('sign_in_view_scaffold'),
+      appBar: AppBar(
+        key: const Key('sign_in_view_app_bar'),
+        title: const Text('Sign In'),
+      ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              key: Key('sign_in_loading_indicator'),
+              child: CircularProgressIndicator(),
+            )
           : Padding(
+              key: const Key('sign_in_view_body'),
               padding: const EdgeInsets.all(16.0),
               child: Column(
+                key: const Key('sign_in_column'),
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
                     'Welcome Back!',
+                    key: Key('welcome_back_text'),
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const Text('Sign in to continue'),
+                  const Text(
+                    'Sign in to continue',
+                    key: Key('sign_in_continue_text'),
+                  ),
                   const SizedBox(height: 30),
                   TextField(
+                    key: const Key('email_text_field'),
                     controller: _emailController,
                     decoration: const InputDecoration(
                       labelText: 'Email',
@@ -68,6 +82,7 @@ class _SignInViewState extends State<SignInView> {
                   ),
                   const SizedBox(height: 15),
                   TextField(
+                    key: const Key('password_text_field'),
                     controller: _passwordController,
                     obscureText: true,
                     decoration: const InputDecoration(
@@ -77,6 +92,7 @@ class _SignInViewState extends State<SignInView> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
+                    key: const Key('sign_in_button'),
                     onPressed: _signIn,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
@@ -87,6 +103,7 @@ class _SignInViewState extends State<SignInView> {
                   ),
                   const SizedBox(height: 20),
                   TextButton(
+                    key: const Key('navigate_to_sign_up_button'),
                     onPressed: () {
                       Navigator.push(
                         context,

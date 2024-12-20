@@ -90,24 +90,39 @@ class _SignUpViewState extends State<SignUpView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      key: const Key('sign_up_view_scaffold'),
+      appBar: AppBar(
+        key: const Key('sign_up_view_app_bar'),
+        title: const Text('Sign Up'),
+      ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              key: Key('sign_up_loading_indicator'),
+              child: CircularProgressIndicator(),
+            )
           : Padding(
+              key: const Key('sign_up_view_body'),
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
+                key: const Key('sign_up_scroll_view'),
                 child: Column(
+                  key: const Key('sign_up_column'),
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
                       'Create Account',
+                      key: Key('create_account_text'),
                       style:
                           TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    const Text('Sign up to get started'),
+                    const Text(
+                      'Sign up to get started',
+                      key: Key('sign_up_get_started_text'),
+                    ),
                     const SizedBox(height: 30),
                     TextField(
+                      key: const Key('name_text_field'),
                       controller: _nameController,
                       decoration: const InputDecoration(
                         labelText: 'Name',
@@ -116,6 +131,7 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                     const SizedBox(height: 15),
                     TextField(
+                      key: const Key('phone_text_field'),
                       controller: _phoneController,
                       decoration: const InputDecoration(
                         labelText: 'Phone Number',
@@ -125,6 +141,7 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                     const SizedBox(height: 15),
                     TextField(
+                      key: const Key('email_text_field'),
                       controller: _emailController,
                       decoration: const InputDecoration(
                         labelText: 'Email',
@@ -134,6 +151,7 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                     const SizedBox(height: 15),
                     TextField(
+                      key: const Key('password_text_field'),
                       controller: _passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
@@ -143,6 +161,7 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                     const SizedBox(height: 15),
                     TextField(
+                      key: const Key('confirm_password_text_field'),
                       controller: _confirmPasswordController,
                       obscureText: true,
                       decoration: const InputDecoration(
@@ -152,6 +171,7 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
+                      key: const Key('sign_up_button'),
                       onPressed: _signUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
@@ -162,6 +182,7 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                     const SizedBox(height: 20),
                     TextButton(
+                      key: const Key('navigate_to_sign_in_button'),
                       onPressed: () {
                         Navigator.pop(context);
                       },
