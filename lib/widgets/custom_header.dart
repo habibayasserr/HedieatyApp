@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../views/notification_page.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title; // Title for the header
@@ -51,10 +53,23 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications, color: Colors.black),
+          icon: const Icon(Icons.notifications),
           onPressed: () {
-            // Uncomment when Notifications Screen is implemented
-            // Navigator.pushNamed(context, '/home')
+            final String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+            if (userId != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificationPage(userId: userId),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Please log in to view notifications.')),
+              );
+            }
           },
         ),
         IconButton(

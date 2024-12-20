@@ -53,7 +53,10 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
 
   Future<void> _updateGiftStatus(Gift gift, String newStatus) async {
     try {
-      await _firestore
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+      // Update gift status in Firestore
+      await firestore
           .collection('users')
           .doc(widget.friendId)
           .collection('events')
@@ -61,6 +64,19 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
           .collection('gifts')
           .doc(gift.id)
           .update({'status': newStatus});
+
+      // Add a notification to the friend's notifications collection
+      final notificationMessage = 'Your ${gift.name} has been $newStatus.';
+      await firestore
+          .collection('users')
+          .doc(widget.friendId)
+          .collection('notifications')
+          .add({
+        'giftName': gift.name,
+        'action': newStatus, // "Pledged", "Unpledged", or "Purchased"
+        'timestamp': FieldValue.serverTimestamp(),
+        'message': notificationMessage,
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gift status updated to $newStatus')),
@@ -95,7 +111,41 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
     );
 
     if (confirm == true) {
-      _updateGiftStatus(gift, 'Available');
+      try {
+        final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+        // Update gift status to "Available"
+        await firestore
+            .collection('users')
+            .doc(widget.friendId)
+            .collection('events')
+            .doc(widget.eventId)
+            .collection('gifts')
+            .doc(gift.id)
+            .update({'status': 'Available'});
+
+        // Add a notification to the friend's notifications collection
+        final notificationMessage = 'Your ${gift.name} has been unpledged.';
+        await firestore
+            .collection('users')
+            .doc(widget.friendId)
+            .collection('notifications')
+            .add({
+          'giftName': gift.name,
+          'action': 'Unpledged',
+          'timestamp': FieldValue.serverTimestamp(),
+          'message': notificationMessage,
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gift status updated to Available')),
+        );
+      } catch (e) {
+        print('Error updating gift status: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update gift status.')),
+        );
+      }
     }
   }
 

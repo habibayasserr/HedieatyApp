@@ -6,6 +6,8 @@ import '../widgets/friend_card_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../views/friend_event_list_view.dart';
+import '../services/firestore_notification_listener.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -34,6 +36,10 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirestoreNotificationListener.listenForNotifications(user.uid);
+    }
   }
 
   Future<void> _addFriend(String name, String phone) async {
