@@ -16,7 +16,7 @@ class AppRoutes {
       '/signup': (context) => SignUpView(),
       '/profile': (context) => const ProfileView(),
       '/splash': (context) => const SplashView(),
-      '/pledged': (context) => const MyPledgedGiftsView(),
+      '/pledged': (context) => const PledgedGiftsView(),
       // '/notifications': (context) => const NotificationsView(),
     };
   }
