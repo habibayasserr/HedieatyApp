@@ -213,7 +213,9 @@ class _ProfileViewState extends State<ProfileView> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 trailing: const Icon(Icons.arrow_forward),
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, '/pledged');
+                },
               ),
               const Divider(height: 30, thickness: 1),
 
