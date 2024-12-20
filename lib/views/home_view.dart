@@ -5,6 +5,7 @@ import '../widgets/custom_footer.dart';
 import '../widgets/friend_card_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../views/friend_event_list_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -17,25 +18,17 @@ class _HomeViewState extends State<HomeView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String? _userId = FirebaseAuth.instance.currentUser?.uid;
   String searchQuery = '';
-
-  Stream<QuerySnapshot<Map<String, dynamic>>> _fetchFriends() {
+  Stream<List<Map<String, dynamic>>> _fetchFriends() {
     return _firestore
         .collection('users')
         .doc(_userId)
         .collection('friends')
-        .snapshots();
-    // setState(() {
-    //   filteredFriends = querySnapshot.docs.map((doc) {
-    //    return UserModel.fromJson(doc);
-    //     // return {
-    //     //   'name': doc['name'],
-    //     //   'phone': doc['phone'],
-    //     //   'profileImage':
-    //     //       'assets/images/default_profile.jpg', // Default for now
-    //     //   'upcomingEvents': 0, // Placeholder for now
-    //     // };
-    //   }).toList();
-    // });
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
+              final friendData = doc.data();
+              friendData['id'] = doc.id; // Include the Firestore document ID
+              return friendData;
+            }).toList());
   }
 
   @override
@@ -220,27 +213,26 @@ class _HomeViewState extends State<HomeView> {
             child: StreamBuilder(
               stream: _fetchFriends(),
               builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                  List<UserModel> userModels = snapshot.data!.docs.map((doc) {
-                    return UserModel.fromJson(doc.data());
-                  }).toList();
-
-                  // Apply search filter
-                  final filteredUsers = userModels.where((user) {
-                    return user.name.toLowerCase().contains(searchQuery);
-                  }).toList();
+                if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                  final friends = snapshot.data! as List<Map<String, dynamic>>;
 
                   return ListView.builder(
-                    itemCount: filteredUsers.length,
+                    itemCount: friends.length,
                     itemBuilder: (context, index) {
-                      final friend = filteredUsers[index];
+                      final friend = friends[index];
                       return FriendCardWidget(
-                        name: friend.name,
-                        profileImage: friend.imageUrl ??
+                        name: friend['name'],
+                        profileImage: friend['imageUrl'] ??
                             'assets/images/default_profile.jpg',
                         upcomingEvents: 0,
                         onTap: () {
-                          // Navigate to Gift List
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  FriendEventListView(friendId: friend['id']),
+                            ),
+                          );
                         },
                       );
                     },
