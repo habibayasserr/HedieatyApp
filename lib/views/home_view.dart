@@ -194,12 +194,11 @@ class _HomeViewState extends State<HomeView> {
             child: TextField(
               onChanged: (value) {
                 setState(() {
-                  searchQuery =
-                      value.toLowerCase(); // Update searchQuery correctly
+                  searchQuery = value.trim().toLowerCase(); // Normalize query
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Search friends\' gift lists',
+                hintText: 'Search friends',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -208,40 +207,50 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
 
-          // Friends List
+// Friends List
           Expanded(
             child: StreamBuilder(
               stream: _fetchFriends(),
               builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                  final friends = snapshot.data! as List<Map<String, dynamic>>;
-
-                  return ListView.builder(
-                    itemCount: friends.length,
-                    itemBuilder: (context, index) {
-                      final friend = friends[index];
-                      return FriendCardWidget(
-                        name: friend['name'],
-                        profileImage: friend['imageUrl'] ??
-                            'assets/images/default_profile.jpg',
-                        upcomingEvents: 0,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  FriendEventListView(friendId: friend['id']),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                } else if (snapshot.hasError) {
-                  return const Center(child: Text('Error fetching data.'));
-                } else {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Error fetching data.'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No friends found.'));
+                }
+
+                final friends = snapshot.data! as List<Map<String, dynamic>>;
+
+                // Filter friends based on searchQuery
+                final filteredFriends = friends.where((friend) {
+                  final name = friend['name'].toString().toLowerCase();
+                  return name.contains(searchQuery); // Case-insensitive match
+                }).toList();
+
+                return ListView.builder(
+                  itemCount: filteredFriends.length,
+                  itemBuilder: (context, index) {
+                    final friend = filteredFriends[index];
+                    return FriendCardWidget(
+                      name: friend['name'],
+                      profileImage: friend['imageUrl'] ??
+                          'assets/images/default_profile.jpg',
+                      upcomingEvents: 0, // Placeholder for now
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                FriendEventListView(friendId: friend['id']),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
               },
             ),
           ),
