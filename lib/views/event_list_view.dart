@@ -354,23 +354,61 @@ class _EventListViewState extends State<EventListView> {
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: ListTile(
-                        title: Text(event.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                                'Date: ${DateFormat('dd-MM-yyyy').format(event.date)}'),
-                            Text('Location: ${event.location}'),
-                            Text('Category: ${event.category}'),
-                          ],
+                        title: Text(
+                          event.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        subtitle: Text(
+                          'Date: ${DateFormat('dd-MM-yyyy').format(event.date)}\nCategory: ${event.category}',
+                          style:
+                              const TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                         onTap: () {
-                          // Navigate to GiftListView when the card is tapped
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => GiftListView(event: event),
-                            ),
+                          // Show dialog with event details
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text(event.name),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Location: ${event.location}'),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Description:',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(event.description),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Close'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(
+                                          context); // Close the dialog
+                                      // Navigate to GiftListView
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              GiftListView(event: event),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('View Gifts'),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         },
                         trailing: Row(
