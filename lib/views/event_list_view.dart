@@ -17,9 +17,11 @@ class EventListView extends StatefulWidget {
 class _EventListViewState extends State<EventListView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String? _userId = FirebaseAuth.instance.currentUser?.uid;
-
   Future<void> deleteEvent(String eventId) async {
-    if (_userId == null) {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not logged in')),
       );
@@ -27,24 +29,24 @@ class _EventListViewState extends State<EventListView> {
     }
 
     try {
-      // Get all gifts in the subcollection
-      final giftsSnapshot = await _firestore
+      // Fetch all gifts in the event's gifts subcollection
+      final giftsSnapshot = await firestore
           .collection('users')
-          .doc(_userId)
+          .doc(userId)
           .collection('events')
           .doc(eventId)
           .collection('gifts')
           .get();
 
       // Delete each gift document
-      for (final doc in giftsSnapshot.docs) {
-        await doc.reference.delete();
+      for (var giftDoc in giftsSnapshot.docs) {
+        await giftDoc.reference.delete();
       }
 
       // Finally, delete the event document
-      await _firestore
+      await firestore
           .collection('users')
-          .doc(_userId)
+          .doc(userId)
           .collection('events')
           .doc(eventId)
           .delete();
@@ -54,7 +56,7 @@ class _EventListViewState extends State<EventListView> {
             content: Text('Event and its gifts deleted successfully!')),
       );
     } catch (e) {
-      print('Error deleting event: $e');
+      print('Error deleting event and its gifts: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to delete event.')),
       );
