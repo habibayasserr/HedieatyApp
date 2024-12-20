@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/event_model.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/custom_footer.dart';
-//import 'friend_gift_list_view.dart';
+import 'friend_gift_list_view.dart';
 
 class FriendEventListView extends StatefulWidget {
   final String friendId; // Friend's user ID
@@ -186,7 +186,7 @@ class _FriendEventListViewState extends State<FriendEventListView> {
                                       Navigator.pop(
                                           context); // Close the dialog
                                       // Navigate to Friend's Gift List
-                                      /* Navigator.push(
+                                      Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
@@ -195,7 +195,7 @@ class _FriendEventListViewState extends State<FriendEventListView> {
                                             friendId: widget.friendId,
                                           ),
                                         ),
-                                      );*/
+                                      );
                                     },
                                     child: const Text('View Gifts'),
                                   ),
