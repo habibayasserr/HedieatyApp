@@ -142,7 +142,8 @@ class _EventListViewState extends State<EventListView> {
             borderRadius: BorderRadius.circular(16),
           ),
           backgroundColor: Colors.white,
-          child: Padding(
+          child: SingleChildScrollView(
+            // Added
             padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,

@@ -44,6 +44,75 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  Future<int> _getUpcomingEventsCount(String friendId) async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final QuerySnapshot snapshot = await firestore
+        .collection('users')
+        .doc(friendId)
+        .collection('events')
+        .where('date', isGreaterThan: DateTime.now())
+        .get();
+    return snapshot.docs.length;
+  }
+
+  Future<void> _addFriend(String name, String phone) async {
+    if (_userId == null) return;
+
+    try {
+      // Check if friend exists in Firestore
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('phone', isEqualTo: phone)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Friend not found.')),
+        );
+        return;
+      }
+
+      final friendDoc = querySnapshot.docs.first;
+      final friendId = friendDoc.id;
+
+      // Add friend to current user's 'friends' subcollection
+      await _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('friends')
+          .doc(friendId)
+          .set({
+        'friend_id': friendId,
+        'name': friendDoc['name'],
+        'phone': friendDoc['phone'],
+      });
+
+      // Add current user to the other user's 'friends' subcollection
+      await _firestore
+          .collection('users')
+          .doc(friendId)
+          .collection('friends')
+          .doc(_userId)
+          .set({
+        'friend_id': _userId,
+        'name': FirebaseAuth.instance.currentUser?.displayName ?? 'Unknown',
+        'phone': FirebaseAuth.instance.currentUser?.phoneNumber ?? 'Unknown',
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Friend added successfully!')),
+      );
+
+      _fetchFriends(); // Refresh the friends list
+    } catch (e) {
+      print('Error adding friend: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to add friend.')),
+      );
+    }
+  }
+
   void _showAddFriendDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController phoneController = TextEditingController();
@@ -123,6 +192,7 @@ class _HomeViewState extends State<HomeView> {
                 final phone = phoneController.text.trim();
 
                 if (name.isNotEmpty && phone.isNotEmpty) {
+                  _addFriend(name, phone);
                   Navigator.pop(context);
                   // Call friend addition logic here
                 } else {
@@ -254,7 +324,6 @@ class _HomeViewState extends State<HomeView> {
                         final name = friend['name'].toString().toLowerCase();
                         return name.contains(searchQuery);
                       }).toList();
-
                       return ListView.separated(
                         key: const Key('filtered_friends_list_view'),
                         itemCount: filteredFriends.length,
@@ -262,19 +331,35 @@ class _HomeViewState extends State<HomeView> {
                             const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final friend = filteredFriends[index];
-                          return FriendCardWidget(
-                            key: Key('friend_card_$index'),
-                            name: friend['name'],
-                            profileImage: friend['imageUrl'] ??
-                                'assets/images/default_profile.jpg',
-                            upcomingEvents: 0,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FriendEventListView(
-                                      friendId: friend['id']),
-                                ),
+                          return FutureBuilder<int>(
+                            future: _getUpcomingEventsCount(friend['id']),
+                            builder: (context, snapshot) {
+                              int upcomingEvents = 0;
+
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                upcomingEvents = 0; // Show 0 while loading
+                              } else if (snapshot.hasError) {
+                                upcomingEvents = 0; // Handle errors gracefully
+                              } else if (snapshot.hasData) {
+                                upcomingEvents = snapshot.data!;
+                              }
+
+                              return FriendCardWidget(
+                                key: Key('friend_card_$index'),
+                                name: friend['name'],
+                                profileImage: friend['imageUrl'] ??
+                                    'assets/images/default_profile.jpg',
+                                upcomingEvents: upcomingEvents, // Dynamic count
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => FriendEventListView(
+                                          friendId: friend['id']),
+                                    ),
+                                  );
+                                },
                               );
                             },
                           );
