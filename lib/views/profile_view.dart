@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:responsive_builder/responsive_builder.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import 'sign_in_view.dart';
 
@@ -11,10 +13,9 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   final ProfileViewModel _viewModel = ProfileViewModel();
-  bool notificationsEnabled = false; // Static for now
-  bool isEditing = false; // Toggle to switch between read-only and edit mode
+  bool notificationsEnabled = false;
+  bool isEditing = false;
 
-  // Controllers for editable fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -25,20 +26,17 @@ class _ProfileViewState extends State<ProfileView> {
     _loadUserProfile();
   }
 
-  // Load user data using ProfileViewModel
   Future<void> _loadUserProfile() async {
     final userData = await _viewModel.fetchUserData();
     if (userData != null) {
       setState(() {
         _nameController.text = userData['name'] ?? '';
         _phoneController.text = userData['phone'] ?? '';
-        _emailController.text =
-            userData['email'] ?? ''; // Email loaded but non-editable
+        _emailController.text = userData['email'] ?? '';
       });
     }
   }
 
-  // Update user profile
   Future<void> _updateProfile() async {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
@@ -53,8 +51,9 @@ class _ProfileViewState extends State<ProfileView> {
     if (!phone.startsWith('01') || phone.length != 11) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text(
-                'Invalid phone number. Must be 11 digits and start with "01".')),
+          content: Text(
+              'Invalid phone number. Must be 11 digits and start with "01".'),
+        ),
       );
       return;
     }
@@ -91,46 +90,56 @@ class _ProfileViewState extends State<ProfileView> {
     bool enabled = true,
     TextInputType inputType = TextInputType.text,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 5),
-        IgnorePointer(
-          ignoring: !enabled, // Disable interaction if not editable
-          child: TextField(
-            controller: controller,
-            keyboardType: inputType,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+    return ResponsiveBuilder(
+      builder: (context, sizingInformation) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF005F73),
               ),
-              filled: !enabled,
-              fillColor: Colors.grey[200], // Grey background when read-only
             ),
-          ),
-        ),
-        const SizedBox(height: 15),
-      ],
+            SizedBox(height: 5.h),
+            IgnorePointer(
+              ignoring: !enabled,
+              child: TextField(
+                controller: controller,
+                keyboardType: inputType,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  filled: !enabled,
+                  fillColor: Colors.grey[200],
+                ),
+              ),
+            ),
+            SizedBox(height: 15.h),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(context, designSize: const Size(375, 812));
+
     return Scaffold(
       key: const Key('profile_view_scaffold'),
       appBar: AppBar(
         key: const Key('profile_view_app_bar'),
         title: const Text('Profile'),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFe5f8ff),
         actions: [
           if (!isEditing)
             IconButton(
               key: const Key('edit_profile_button'),
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.edit, color: Colors.white),
               onPressed: () => setState(() => isEditing = true),
             ),
         ],
@@ -151,15 +160,14 @@ class _ProfileViewState extends State<ProfileView> {
                   children: [
                     CircleAvatar(
                       key: const Key('profile_picture_avatar'),
-                      radius: 50,
+                      radius: 50.r,
                       backgroundColor: Colors.grey[300],
                       child: const Icon(Icons.person, size: 50),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              // Editable Fields
+              SizedBox(height: 20.h),
               _buildEditableField(
                 label: 'Name',
                 controller: _nameController,
@@ -183,9 +191,11 @@ class _ProfileViewState extends State<ProfileView> {
                     key: const Key('save_profile_changes_button'),
                     onPressed: _updateProfile,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 40, vertical: 12),
+                      backgroundColor: const Color(0xFF005F73),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 40.w,
+                        vertical: 12.h,
+                      ),
                     ),
                     child: const Text(
                       'Save Changes',
@@ -200,7 +210,11 @@ class _ProfileViewState extends State<ProfileView> {
                 children: [
                   const Text(
                     'Enable Notifications',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF005F73),
+                    ),
                   ),
                   Switch(
                     key: const Key('enable_notifications_switch'),
@@ -218,9 +232,14 @@ class _ProfileViewState extends State<ProfileView> {
                 key: const Key('my_pledged_gifts_tile'),
                 title: const Text(
                   'My Pledged Gifts',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF005F73),
+                  ),
                 ),
-                trailing: const Icon(Icons.arrow_forward),
+                trailing:
+                    const Icon(Icons.arrow_forward, color: Color(0xFF005F73)),
                 onTap: () {
                   Navigator.pushNamed(context, '/pledged');
                 },
@@ -231,9 +250,11 @@ class _ProfileViewState extends State<ProfileView> {
                   key: const Key('sign_out_button'),
                   onPressed: _signOut,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 12),
+                    backgroundColor: const Color(0xFFEF0F72),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 40.w,
+                      vertical: 12.h,
+                    ),
                   ),
                   child: const Text(
                     'Sign Out',

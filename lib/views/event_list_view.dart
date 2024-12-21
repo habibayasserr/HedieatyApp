@@ -17,11 +17,9 @@ class EventListView extends StatefulWidget {
 class _EventListViewState extends State<EventListView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String? _userId = FirebaseAuth.instance.currentUser?.uid;
-  Future<void> deleteEvent(String eventId) async {
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    final String? userId = FirebaseAuth.instance.currentUser?.uid;
 
-    if (userId == null) {
+  Future<void> deleteEvent(String eventId) async {
+    if (_userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not logged in')),
       );
@@ -29,24 +27,24 @@ class _EventListViewState extends State<EventListView> {
     }
 
     try {
-      // Fetch all gifts in the event's gifts subcollection
-      final giftsSnapshot = await firestore
+      // Get all gifts in the subcollection
+      final giftsSnapshot = await _firestore
           .collection('users')
-          .doc(userId)
+          .doc(_userId)
           .collection('events')
           .doc(eventId)
           .collection('gifts')
           .get();
 
       // Delete each gift document
-      for (var giftDoc in giftsSnapshot.docs) {
-        await giftDoc.reference.delete();
+      for (final doc in giftsSnapshot.docs) {
+        await doc.reference.delete();
       }
 
       // Finally, delete the event document
-      await firestore
+      await _firestore
           .collection('users')
-          .doc(userId)
+          .doc(_userId)
           .collection('events')
           .doc(eventId)
           .delete();
@@ -56,7 +54,7 @@ class _EventListViewState extends State<EventListView> {
             content: Text('Event and its gifts deleted successfully!')),
       );
     } catch (e) {
-      print('Error deleting event and its gifts: $e');
+      print('Error deleting event: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to delete event.')),
       );
@@ -126,7 +124,6 @@ class _EventListViewState extends State<EventListView> {
             }).toList());
   }
 
-  // Dialog for adding or editing events
   void _showEventDialog({Event? event, int? index}) {
     final TextEditingController nameController =
         TextEditingController(text: event?.name);
@@ -140,82 +137,143 @@ class _EventListViewState extends State<EventListView> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(event == null ? 'Add Event' : 'Edit Event'),
-          content: SingleChildScrollView(
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  event == null ? 'Add Event' : 'Edit Event',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF005F73),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Event Name',
                     hintText: 'Enter event name',
+                    filled: true,
+                    fillColor: const Color(0xFFE5F8FF),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: const Color(0xFF005F73)),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: selectedCategory,
-                  items: [
-                    'Birthday',
-                    'Wedding',
-                    'Graduation',
-                    'Holiday',
-                    'Engagement'
-                  ].map((category) {
-                    return DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        selectedCategory = value;
-                      });
-                    }
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                  ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (var category in [
+                      'Birthday',
+                      'Wedding',
+                      'Graduation',
+                      'Holiday',
+                      'Engagement',
+                      'Anniversary',
+                      'Other'
+                    ])
+                      ChoiceChip(
+                        label: Text(category),
+                        selected: selectedCategory == category,
+                        onSelected: (isSelected) {
+                          setState(() {
+                            selectedCategory = category;
+                          });
+                        },
+                        selectedColor: const Color(0xFFEF0F72),
+                        backgroundColor: const Color(0xFF0077B6),
+                        labelStyle: TextStyle(
+                          color: selectedCategory == category
+                              ? Colors.white
+                              : Colors.white,
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
                 TextField(
                   controller: locationController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Location',
                     hintText: 'Enter event location',
+                    filled: true,
+                    fillColor: const Color(0xFFE5F8FF),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: const Color(0xFF005F73)),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
                 TextField(
                   controller: descriptionController,
-                  decoration: const InputDecoration(
+                  maxLines: 3,
+                  decoration: InputDecoration(
                     labelText: 'Description',
                     hintText: 'Enter event description',
+                    filled: true,
+                    fillColor: const Color(0xFFE5F8FF),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: const Color(0xFF005F73)),
+                    ),
                   ),
-                  maxLines: 3,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Text('Date: '),
-                    Text(
-                      selectedDate != null
-                          ? DateFormat('dd-MM-yyyy').format(selectedDate!)
-                          : 'Select Date',
-                      style: const TextStyle(
+                    const Text(
+                      'Date:',
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF005F73),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        selectedDate != null
+                            ? DateFormat('dd-MM-yyyy').format(selectedDate!)
+                            : 'Select Date',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
                     IconButton(
-                      icon: const Icon(Icons.calendar_today),
+                      icon: const Icon(Icons.calendar_today,
+                          color: Color(0xFFEF0F72)),
                       onPressed: () async {
                         final pickedDate = await showDatePicker(
                           context: context,
                           initialDate: selectedDate ?? DateTime.now(),
                           firstDate: DateTime(2000),
                           lastDate: DateTime(2100),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: Color(0xFF005F73),
+                                  onPrimary: Colors.white,
+                                  onSurface: Colors.black,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
                         );
                         if (pickedDate != null) {
                           setState(() {
@@ -226,63 +284,76 @@ class _EventListViewState extends State<EventListView> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF005F73),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final name = nameController.text.trim();
+                        final location = locationController.text.trim();
+                        final description = descriptionController.text.trim();
+
+                        if (name.isEmpty ||
+                            location.isEmpty ||
+                            description.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please fill in all fields'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (event == null) {
+                          await _firestore
+                              .collection('users')
+                              .doc(_userId)
+                              .collection('events')
+                              .add({
+                            'name': name,
+                            'category': selectedCategory,
+                            'date': selectedDate ?? DateTime.now(),
+                            'location': location,
+                            'description': description,
+                          });
+                        } else {
+                          await _firestore
+                              .collection('users')
+                              .doc(_userId)
+                              .collection('events')
+                              .doc(event.id)
+                              .update({
+                            'name': name,
+                            'category': selectedCategory,
+                            'date': selectedDate ?? DateTime.now(),
+                            'location': location,
+                            'description': description,
+                          });
+                        }
+
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF0F72),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Save'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final name = nameController.text.trim();
-                final location = locationController.text.trim();
-                final description = descriptionController.text.trim();
-
-                if (name.isEmpty || location.isEmpty || description.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill in all fields'),
-                    ),
-                  );
-                  return;
-                }
-
-                // Add new event to Firestore
-                if (event == null) {
-                  await _firestore
-                      .collection('users')
-                      .doc(_userId)
-                      .collection('events')
-                      .add({
-                    'name': name,
-                    'category': selectedCategory,
-                    'date': selectedDate ?? DateTime.now(),
-                    'location': location,
-                    'description': description,
-                  });
-                } else {
-                  // Update existing event
-                  await _firestore
-                      .collection('users')
-                      .doc(_userId)
-                      .collection('events')
-                      .doc(event.id)
-                      .update({
-                    'name': name,
-                    'category': selectedCategory,
-                    'date': selectedDate ?? DateTime.now(),
-                    'location': location,
-                    'description': description,
-                  });
-                }
-
-                Navigator.pop(context); // Close dialog
-              },
-              child: const Text('Save'),
-            ),
-          ],
         );
       },
     );
@@ -302,34 +373,62 @@ class _EventListViewState extends State<EventListView> {
       ),
       body: Column(
         children: [
+          // Sorting Dropdown
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              key: const Key('events_sort_dropdown'),
-              value: selectedSortOption,
-              items: [
-                'Sort by Name (Ascending)',
-                'Sort by Name (Descending)',
-                'Sort by Upcoming Events',
-                'Sort by Current Events',
-                'Sort by Past Events',
-                'Sort by Category',
-              ].map((sortOption) {
-                return DropdownMenuItem(
-                  value: sortOption,
-                  child: Text(sortOption),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedSortOption = value;
-                  });
-                }
-              },
-              isExpanded: true,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0XFFFDE9F2), // Light blue background
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF005F73), // Darker blue border
+                  width: 2,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selectedSortOption,
+                  items: [
+                    'Sort by Name (Ascending)',
+                    'Sort by Name (Descending)',
+                    'Sort by Upcoming Events',
+                    'Sort by Current Events',
+                    'Sort by Past Events',
+                    'Sort by Category',
+                  ].map((sortOption) {
+                    return DropdownMenuItem(
+                      value: sortOption,
+                      child: Text(
+                        sortOption,
+                        style: const TextStyle(
+                          color: Color(0xFF005F73), // Darker blue text
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedSortOption = value;
+                      });
+                    }
+                  },
+                  isExpanded: true,
+                  dropdownColor:
+                      const Color(0XFFFDE9F2), // Dropdown background color
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Color(0xFF005F73),
+                    size: 36, // Darker blue icon
+                  ),
+                ),
+              ),
             ),
           ),
+
+          // Event List
           Expanded(
             child: StreamBuilder<List<Event>>(
               stream: _fetchEvents(),
@@ -348,35 +447,246 @@ class _EventListViewState extends State<EventListView> {
                 _sortEvents(events); // Apply sorting
 
                 return ListView.builder(
-                  key: const Key('events_list_view'),
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     final event = events[index];
                     return Card(
-                      key: Key('event_card_$index'),
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: ListTile(
-                        title: Text(
-                          event.name,
-                          key: Key('event_name_$index'),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        subtitle: Text(
-                          'Date: ${DateFormat('dd-MM-yyyy').format(event.date)}\nCategory: ${event.category}',
-                          key: Key('event_details_$index'),
-                          style:
-                              const TextStyle(fontSize: 14, color: Colors.grey),
+                        title: Row(
+                          children: [
+                            Container(
+                              width: 60,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                    0xFF005F73), // Dark blue background for date
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    DateFormat('dd').format(event.date),
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    DateFormat('MMM')
+                                        .format(event.date)
+                                        .toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    DateFormat('yyyy').format(event.date),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    event.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Category: ${event.category}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => GiftListView(event: event),
-                            ),
+                          // Show dialog with event details
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                title: Text(
+                                  event.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF005F73),
+                                  ),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Location: ${event.location}',
+                                      style: const TextStyle(
+                                        color: Color(0xFF005F73),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'Description:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF005F73),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      event.description,
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: const Color(0xFF005F73),
+                                    ),
+                                    child: const Text('Close'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(
+                                          context); // Close the dialog
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              GiftListView(event: event),
+                                        ),
+                                      );
+                                    },
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: const Color(
+                                          0xFFEF0F72), // Deep pink for View Gifts
+                                    ),
+                                    child: const Text('View Gifts'),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit,
+                                  color:
+                                      Color(0xFF005F73)), // Dark blue for edit
+                              onPressed: () {
+                                _showEventDialog(event: event);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete,
+                                  color: Color(
+                                      0xFFEF0F72)), // Deep pink for delete
+                              onPressed: () async {
+                                final shouldDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      backgroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      title: const Text(
+                                        'Confirm Deletion',
+                                        style: TextStyle(
+                                          color: Color(0xFF005F73),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      content: const Text(
+                                        'Are you sure you want to delete this event?',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(
+                                              context, false), // Cancel
+                                          style: TextButton.styleFrom(
+                                            foregroundColor:
+                                                const Color(0xFF005F73),
+                                          ),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(
+                                              context, true), // Confirm
+                                          style: TextButton.styleFrom(
+                                            foregroundColor:
+                                                const Color(0xFFEF0F72),
+                                          ),
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (shouldDelete == true) {
+                                  try {
+                                    await _firestore
+                                        .collection('users')
+                                        .doc(_userId)
+                                        .collection('events')
+                                        .doc(event.id)
+                                        .delete();
+
+                                    final rootContext =
+                                        ScaffoldMessenger.of(context);
+                                    rootContext.showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Event deleted successfully!')),
+                                    );
+                                  } catch (e) {
+                                    final rootContext =
+                                        ScaffoldMessenger.of(context);
+                                    rootContext.showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('Failed to delete event.')),
+                                    );
+                                    print('Error deleting event: $e');
+                                  }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -387,11 +697,10 @@ class _EventListViewState extends State<EventListView> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        key: const Key('add_event_fab'),
         onPressed: () {
           _showEventDialog();
         },
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFEF0F72),
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: CustomFooter(

@@ -48,7 +48,9 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Hedieaty',
       theme: ThemeData(
-        primarySwatch: Colors.orange,
+        primarySwatch: Colors.pink,
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.pink)
+            .copyWith(secondary: const Color(0xFF005F73)),
       ),
       initialRoute: '/splash',
       routes: AppRoutes.getRoutes(),

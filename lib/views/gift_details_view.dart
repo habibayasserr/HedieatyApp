@@ -194,7 +194,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
           widget.gift == null ? 'Add Gift' : 'Edit Gift',
           key: const Key('gift_details_title'),
         ),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFe5f8ff),
       ),
       body: SingleChildScrollView(
         key: const Key('gift_details_scroll_view'),
@@ -214,14 +214,33 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
               onTap: widget.isEditable ? _pickImage : null,
               child: Container(
                 key: const Key('gift_image_container'),
-                height: 150,
+                height: 300,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF005F73), // Start with a darker blue
+                      const Color(0xFF98C1D9), // Gradient to a lighter blue
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                      color: const Color(0xFF005F73),
+                      width: 2), // Consistent border with theme
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 8,
+                      offset: Offset(2, 4),
+                    ),
+                  ],
                 ),
-                child: _buildGiftImage(),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: _buildGiftImage(),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -311,7 +330,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                           });
                         }
                       : null,
-                  activeColor: Colors.orange,
+                  activeColor: const Color(0xFFf0207c),
                 ),
                 Text(
                   'Pledged',
@@ -329,9 +348,21 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                 child: ElevatedButton(
                   key: const Key('save_changes_button'),
                   onPressed: _saveGift,
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                  child: const Text('Save Changes'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFe5f8ff),
+                    side: const BorderSide(
+                      color: Color(
+                          0xFF005F73), // Change this to your desired outline color
+                      width: 2.0, // Adjust the width of the outline as needed
+                    ),
+                  ),
+                  child: const Text(
+                    'Save Changes',
+                    style: TextStyle(
+                      color: Color(
+                          0xFFf0207c), // Change this to your desired text color
+                    ),
+                  ),
                 ),
               ),
           ],

@@ -63,39 +63,68 @@ class _GiftListViewState extends State<GiftListView> {
           widget.event.name,
           key: const Key('gift_list_title'),
         ),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFe5f8ff),
       ),
       body: Column(
         key: const Key('gift_list_body'),
         children: [
           // Sorting Dropdown
+
           Padding(
             key: const Key('gift_list_sorting_dropdown'),
             padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              key: const Key('gift_sort_dropdown'),
-              value: selectedSortOption,
-              items: [
-                'Sort by Name (Ascending)',
-                'Sort by Name (Descending)',
-                'Sort by Category',
-                'Sort by Status',
-              ].map((sortOption) {
-                return DropdownMenuItem(
-                  value: sortOption,
-                  child: Text(sortOption, key: Key('sort_option_$sortOption')),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedSortOption = value;
-                  });
-                }
-              },
-              isExpanded: true,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0XFFFDE9F2), // Light pink background
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF005F73), // Darker blue border
+                  width: 2,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  key: const Key('gift_sort_dropdown'),
+                  value: selectedSortOption,
+                  items: [
+                    'Sort by Name (Ascending)',
+                    'Sort by Name (Descending)',
+                    'Sort by Category',
+                    'Sort by Status',
+                  ].map((sortOption) {
+                    return DropdownMenuItem(
+                      value: sortOption,
+                      child: Text(
+                        sortOption,
+                        key: Key('sort_option_$sortOption'),
+                        style: const TextStyle(
+                          color: Color(0xFF005F73), // Darker blue text
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedSortOption = value;
+                      });
+                    }
+                  },
+                  isExpanded: true,
+                  dropdownColor:
+                      const Color(0XFFFDE9F2), // Dropdown background color
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Color(0xFF005F73),
+                    size: 36, // Darker blue icon
+                  ),
+                ),
+              ),
             ),
           ),
+
           // Gifts List
           Expanded(
             key: const Key('gift_list_stream_builder'),
@@ -133,15 +162,29 @@ class _GiftListViewState extends State<GiftListView> {
                       key: Key('gift_card_$index'),
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                            color: const Color(0xFF005F73),
+                            width: 2), // Blue outline
+                      ),
                       child: ListTile(
                         key: Key('gift_tile_$index'),
                         title: Text(
                           gift.name,
                           key: Key('gift_name_$index'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF005F73), // Blue text
+                          ),
                         ),
                         subtitle: Text(
                           'Category: ${gift.category}\nPrice: ${gift.price.toStringAsFixed(2)} EGP',
                           key: Key('gift_details_$index'),
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
                         ),
                         onTap: () {
                           Navigator.push(
@@ -163,7 +206,7 @@ class _GiftListViewState extends State<GiftListView> {
                                   IconButton(
                                     key: Key('edit_gift_$index'),
                                     icon: const Icon(Icons.edit,
-                                        color: Colors.blue),
+                                        color: Color(0xFF005F73)),
                                     onPressed: () {
                                       Navigator.push(
                                         context,
@@ -180,7 +223,7 @@ class _GiftListViewState extends State<GiftListView> {
                                   IconButton(
                                     key: Key('delete_gift_$index'),
                                     icon: const Icon(Icons.delete,
-                                        color: Colors.red),
+                                        color: Color(0xFFEF0F72)),
                                     onPressed: () async {
                                       if (_userId == null) {
                                         ScaffoldMessenger.of(context)
@@ -233,7 +276,7 @@ class _GiftListViewState extends State<GiftListView> {
             ),
           );
         },
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFEF0F72),
         child: const Icon(Icons.add),
       ),
     );

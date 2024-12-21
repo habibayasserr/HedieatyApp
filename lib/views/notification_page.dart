@@ -28,8 +28,11 @@ class NotificationPage extends StatelessWidget {
       key: const Key('notification_page_scaffold'),
       appBar: AppBar(
         key: const Key('notification_page_app_bar'),
-        title: const Text('Notifications'),
-        backgroundColor: Colors.orange,
+        title: const Text(
+          'Notifications',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF005F73), // Theme color
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
         key: const Key('notifications_stream_builder'),
@@ -38,19 +41,25 @@ class NotificationPage extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               key: Key('notifications_loading'),
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(color: Color(0xFF005F73)),
             );
           }
           if (snapshot.hasError) {
             return const Center(
               key: Key('notifications_error'),
-              child: Text('Error fetching notifications.'),
+              child: Text(
+                'Error fetching notifications.',
+                style: TextStyle(color: Color(0xFFEF0F72)), // Deep pink
+              ),
             );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
               key: Key('notifications_empty'),
-              child: Text('No notifications.'),
+              child: Text(
+                'No notifications.',
+                style: TextStyle(color: Colors.grey, fontSize: 16),
+              ),
             );
           }
 
@@ -67,16 +76,28 @@ class NotificationPage extends StatelessWidget {
               return Card(
                 key: Key('notification_card_$index'),
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: const Color(0xFF005F73), width: 2),
+                ),
+                elevation: 2,
                 child: ListTile(
                   title: Text(
                     notification['message'],
                     key: Key('notification_message_$index'),
+                    style: const TextStyle(
+                      color: Color(0xFF005F73),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   subtitle: timestamp != null
                       ? Text(
-                          'Received: ${timestamp.toLocal()}',
+                          'Received: ${timestamp.toLocal()}'.split('.').first,
                           key: Key('notification_timestamp_$index'),
-                          style: const TextStyle(color: Colors.grey),
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
                         )
                       : null,
                 ),

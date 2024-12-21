@@ -30,7 +30,7 @@ class FriendGiftDetailsView extends StatelessWidget {
           'Gift Details',
           key: Key('gift_details_title'),
         ),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFe5f8ff),
       ),
       body: Padding(
         key: const Key('gift_details_body'),
@@ -49,14 +49,33 @@ class FriendGiftDetailsView extends StatelessWidget {
               const SizedBox(height: 10),
               Container(
                 key: const Key('gift_image_container'),
-                height: 150,
+                height: 300,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF005F73), // Start with a darker blue
+                      const Color(0xFF98C1D9), // Gradient to a lighter blue
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                      color: const Color(0xFF005F73),
+                      width: 2), // Consistent border with theme
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 8,
+                      offset: Offset(2, 4),
+                    ),
+                  ],
                 ),
-                child: _buildGiftImage(gift.imageBase64),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: _buildGiftImage(gift.imageBase64),
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -120,7 +139,7 @@ class FriendGiftDetailsView extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.red,
+                    color: Color(0xFFf0207c),
                   ),
                 ),
               ] else ...[
@@ -142,7 +161,7 @@ class FriendGiftDetailsView extends StatelessWidget {
                       key: const Key('gift_status_switch'),
                       value: gift.status == 'Pledged',
                       onChanged: null, // Read-only
-                      activeColor: Colors.orange,
+                      activeColor: const Color(0xFFf0207c),
                     ),
                     Text(
                       'Pledged',

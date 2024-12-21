@@ -159,7 +159,7 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
       appBar: AppBar(
         key: const Key('friend_gift_list_app_bar'),
         title: const Text('Gift List', key: Key('gift_list_title')),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFe5f8ff),
       ),
       body: Column(
         key: const Key('gift_list_body'),
@@ -168,31 +168,58 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
           Padding(
             key: const Key('gift_list_sorting_dropdown'),
             padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              key: const Key('gift_list_sort_dropdown_button'),
-              value: selectedSortOption,
-              items: [
-                'Sort by Name (Ascending)',
-                'Sort by Name (Descending)',
-                'Sort by Category',
-                'Sort by Status',
-              ].map((sortOption) {
-                return DropdownMenuItem(
-                  value: sortOption,
-                  child:
-                      Text(sortOption, key: Key('dropdown_item_$sortOption')),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedSortOption = value;
-                  });
-                }
-              },
-              isExpanded: true,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0XFFFDE9F2), // Light pink background
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF005F73), // Darker blue border
+                  width: 2,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  key: const Key('gift_list_sort_dropdown_button'),
+                  value: selectedSortOption,
+                  items: [
+                    'Sort by Name (Ascending)',
+                    'Sort by Name (Descending)',
+                    'Sort by Category',
+                    'Sort by Status',
+                  ].map((sortOption) {
+                    return DropdownMenuItem(
+                      value: sortOption,
+                      child: Text(
+                        sortOption,
+                        key: Key('dropdown_item_$sortOption'),
+                        style: const TextStyle(
+                          color: Color(0xFF005F73), // Darker blue text
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedSortOption = value;
+                      });
+                    }
+                  },
+                  isExpanded: true,
+                  dropdownColor:
+                      const Color(0XFFFDE9F2), // Dropdown background color
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Color(0xFF005F73),
+                    size: 36, // Darker blue icon
+                  ),
+                ),
+              ),
             ),
           ),
+
           Expanded(
             child: StreamBuilder<List<Gift>>(
               key: const Key('gift_list_stream_builder'),
@@ -236,18 +263,32 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
                       color: cardColor,
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                            color: const Color(0xFF005F73),
+                            width: 2), // Consistent theme border
+                      ),
                       child: ListTile(
                         key: Key('gift_tile_$index'),
                         title: Text(
                           gift.name,
                           key: Key('gift_name_$index'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color:
+                                Color(0xFF005F73), // Blue text for consistency
+                          ),
                         ),
                         subtitle: Text(
                           'Category: ${gift.category}',
                           key: Key('gift_category_$index'),
+                          style: const TextStyle(
+                            color: Color(0xFF005F73),
+                            fontSize: 14,
+                          ),
                         ),
                         onTap: () {
-                          // Navigate to FriendGiftDetailsView
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -266,6 +307,12 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
                                 onPressed: () {
                                   _updateGiftStatus(gift, 'Pledged');
                                 },
+                                style: TextButton.styleFrom(
+                                  foregroundColor:
+                                      const Color(0xFF005F73), // Blue text
+                                  textStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
                                 child: const Text('Pledge'),
                               ),
                             if (gift.status == 'Pledged')
@@ -274,6 +321,12 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
                                 onPressed: () {
                                   _confirmUnpledge(gift);
                                 },
+                                style: TextButton.styleFrom(
+                                  foregroundColor:
+                                      const Color(0xFFEF0F72), // Magenta text
+                                  textStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
                                 child: const Text('Unpledge'),
                               ),
                             if (gift.status != 'Purchased')
@@ -282,6 +335,12 @@ class _FriendGiftListViewState extends State<FriendGiftListView> {
                                 onPressed: () {
                                   _updateGiftStatus(gift, 'Purchased');
                                 },
+                                style: TextButton.styleFrom(
+                                  foregroundColor:
+                                      const Color(0xFFEF0F72), // Magenta text
+                                  textStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
                                 child: const Text('Purchase'),
                               ),
                           ],

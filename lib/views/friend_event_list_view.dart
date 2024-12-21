@@ -91,30 +91,55 @@ class _FriendEventListViewState extends State<FriendEventListView> {
           // Sorting Dropdown
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              key: const Key('friend_events_sort_dropdown'),
-              value: selectedSortOption,
-              items: [
-                'Sort by Name (Ascending)',
-                'Sort by Name (Descending)',
-                'Sort by Upcoming Events',
-                'Sort by Current Events',
-                'Sort by Past Events',
-                'Sort by Category',
-              ].map((sortOption) {
-                return DropdownMenuItem(
-                  value: sortOption,
-                  child: Text(sortOption),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedSortOption = value;
-                  });
-                }
-              },
-              isExpanded: true,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0XFFFDE9F2), // Light blue background
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF005F73), // Darker blue border
+                  width: 2,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selectedSortOption,
+                  items: [
+                    'Sort by Name (Ascending)',
+                    'Sort by Name (Descending)',
+                    'Sort by Upcoming Events',
+                    'Sort by Current Events',
+                    'Sort by Past Events',
+                    'Sort by Category',
+                  ].map((sortOption) {
+                    return DropdownMenuItem(
+                      value: sortOption,
+                      child: Text(
+                        sortOption,
+                        style: const TextStyle(
+                          color: Color(0xFF005F73), // Darker blue text
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedSortOption = value;
+                      });
+                    }
+                  },
+                  isExpanded: true,
+                  dropdownColor:
+                      const Color(0XFFFDE9F2), // Dropdown background color
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Color(0xFF005F73),
+                    size: 36, // Darker blue icon
+                  ),
+                ),
+              ),
             ),
           ),
           // Event List
@@ -144,71 +169,169 @@ class _FriendEventListViewState extends State<FriendEventListView> {
                       key: Key('friend_event_card_$index'),
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        title: Text(
-                          event.name,
-                          key: Key('friend_event_name_$index'),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        subtitle: Text(
-                          'Date: ${DateFormat('dd-MM-yyyy').format(event.date)}\nCategory: ${event.category}',
-                          key: Key('friend_event_details_$index'),
-                          style:
-                              const TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                        trailing: const Icon(Icons.info_outline,
-                            color: Colors.orange),
-                        onTap: () {
-                          // Show dialog with event description and location
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: Text(event.name),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Location: ${event.location}'),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Description:',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(event.description),
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Close'),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                  0xFF005F73), // Dark blue background for date
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                bottomLeft: Radius.circular(12),
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  DateFormat('dd').format(event.date),
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(
-                                          context); // Close the dialog
-                                      // Navigate to Friend's Gift List
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              FriendGiftListView(
-                                            eventId: event.id!,
-                                            friendId: widget.friendId,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: const Text('View Gifts'),
+                                ),
+                                Text(
+                                  DateFormat('MMM')
+                                      .format(event.date)
+                                      .toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Text(
+                                  DateFormat('yyyy').format(event.date),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    event.name,
+                                    key: Key('friend_event_name_$index'),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Category: ${event.category}',
+                                    key: Key('friend_event_details_$index'),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ],
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.info_outline,
+                              color: Color(0xFFef0c70),
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    backgroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    title: Text(
+                                      event.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF005F73),
+                                      ),
+                                    ),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Location: ${event.location}',
+                                          style: const TextStyle(
+                                            color: Color(0xFF005F73),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        const Text(
+                                          'Description:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF005F73),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          event.description,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor:
+                                              const Color(0xFF005F73),
+                                        ),
+                                        child: const Text('Close'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(
+                                              context); // Close the dialog
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  FriendGiftListView(
+                                                eventId: event.id!,
+                                                friendId: widget.friendId,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: const Color(
+                                              0xFFEF0F72), // Deep pink for View Gifts
+                                        ),
+                                        child: const Text('View Gifts'),
+                                      ),
+                                    ],
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     );
                   },
