@@ -10,7 +10,6 @@
 - **Gift Lists**: Maintain gift lists with statuses (Available, Pledged, Purchased) and detailed tracking.
 - **Push Notifications**: Real-time notifications for gift status updates and event reminders.
 - **Friend Collaboration**: Collaborate with friends on shared events and gift lists.
-- **Advanced Search**: Easily find friends, events, and gifts using the integrated search functionality.
 - **Sorting & Filtering**: Sort events and gifts by name, date, category, or status for quick navigation.
 - **Profile Management**: Update your profile, set notification preferences, and view pledged gift history.
 - **Color-Coded Tracking**: Gifts are color-coded by status for easy management.
